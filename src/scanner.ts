@@ -119,10 +119,9 @@ function scanContent(
         if (seenLines.has(line)) continue; // one record per line per pattern
         seenLines.add(line);
 
-        const lineStart = lineStarts[line - 1];
-        const nextStart =
-          line < lineStarts.length ? lineStarts[line] : content.length;
-        const text = content.slice(lineStart, nextStart).replace(/\r?\n$/, "").trim();
+        // Cite the matched substring itself (e.g. "beta.assistants"), normalized
+        // and length-capped, so the report points at exactly what triggered.
+        const text = (m[0] ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
 
         if (!recorded) {
           recorded = [];
@@ -160,6 +159,54 @@ function matchManifests(
   return byId;
 }
 
+/** Best-effort parse of a dotted numeric version from a declared string. */
+function parseVersionNumbers(raw: string | null): number[] | null {
+  if (!raw) return null;
+  // Pull the first dotted-number run, ignoring ^ ~ >= <= operators and a "v" prefix.
+  const m = /(\d+(?:\.\d+)*)/.exec(raw);
+  if (!m) return null;
+  return m[1].split(".").map((n) => parseInt(n, 10));
+}
+
+function compareVersions(a: number[], b: number[]): number {
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i++) {
+    const x = a[i] ?? 0;
+    const y = b[i] ?? 0;
+    if (x !== y) return x < y ? -1 : 1;
+  }
+  return 0;
+}
+
+/**
+ * Best-effort check that a declared version satisfies a simple range such as
+ * "<3.0.0", ">=1.2.0", or "=2.1.0" / "2.1.0". Semver-ish: compares dotted numbers.
+ * Returns true when no range is given; false when a range is required but the
+ * declared version can't be parsed (stay conservative — don't over-flag).
+ */
+function versionInRange(declared: string | null, range: string | undefined): boolean {
+  if (!range) return true; // no constraint → presence already established by caller
+  const rm = /^\s*(<=|>=|<|>|={1,3})?\s*v?(\d+(?:\.\d+)*)\s*$/.exec(range);
+  if (!rm) return true; // unparseable range → don't invent a false constraint
+  const op = rm[1] || "=";
+  const target = rm[2].split(".").map((n) => parseInt(n, 10));
+  const have = parseVersionNumbers(declared);
+  if (!have) return false;
+  const cmp = compareVersions(have, target);
+  switch (op) {
+    case "<":
+      return cmp < 0;
+    case "<=":
+      return cmp <= 0;
+    case ">":
+      return cmp > 0;
+    case ">=":
+      return cmp >= 0;
+    default:
+      return cmp === 0;
+  }
+}
+
 /**
  * Scan a repository for deprecation usage.
  * @param root repo root to scan.
@@ -168,12 +215,19 @@ function matchManifests(
 export function scanRepo(root: string, deprecations: Deprecation[]): ScanResult {
   const absRoot = path.resolve(root);
 
-  // 1. Manifest scan.
-  const { refs, manifests } = collectManifestDeps(absRoot);
-  const manifestMatches = matchManifests(deprecations, refs);
+  // Partition by match mode: "pattern" entries key on real source usage, while
+  // "sdk"/"version" entries key on the manifest.
+  const patternDeps = deprecations.filter((d) => d.match === "pattern");
+  const manifestDeps = deprecations.filter(
+    (d) => d.match === "sdk" || d.match === "version"
+  );
 
-  // 2. Inline scan.
-  const compiled = compileDeprecations(deprecations);
+  // 1. Manifest scan (drives sdk/version entries; also lists the manifests read).
+  const { refs, manifests } = collectManifestDeps(absRoot);
+  const manifestMatches = matchManifests(manifestDeps, refs);
+
+  // 2. Inline source scan (drives pattern entries — usage, not mere presence).
+  const compiled = compileDeprecations(patternDeps);
   const patternSink = new Map<string, PatternMatch[]>();
 
   const files = fg.sync(
@@ -210,13 +264,32 @@ export function scanRepo(root: string, deprecations: Deprecation[]): ScanResult 
     scanContent(content, rel, compiled, patternSink);
   }
 
-  // 3. Combine: detected if a manifest match OR a pattern match exists.
+  // 3. Build findings — one per deprecation, evaluated per its match mode.
   const findings: Finding[] = [];
   for (const deprecation of deprecations) {
+    if (deprecation.match === "pattern") {
+      // Flag ONLY on a real source hit; manifest/SDK presence is irrelevant here.
+      const pm = patternSink.get(deprecation.id) ?? [];
+      if (pm.length === 0) continue;
+      findings.push({ deprecation, manifestMatches: [], patternMatches: pm });
+      continue;
+    }
+
+    // "sdk" / "version": evaluate against the manifest.
     const mm = manifestMatches.get(deprecation.id) ?? [];
-    const pm = patternSink.get(deprecation.id) ?? [];
-    if (mm.length === 0 && pm.length === 0) continue;
-    findings.push({ deprecation, manifestMatches: mm, patternMatches: pm });
+    if (mm.length === 0) continue;
+
+    if (deprecation.match === "version") {
+      const inRange = mm.filter((m) =>
+        versionInRange(m.version, deprecation.version_range)
+      );
+      if (inRange.length === 0) continue;
+      findings.push({ deprecation, manifestMatches: inRange, patternMatches: [] });
+      continue;
+    }
+
+    // "sdk": mere presence in a manifest is enough.
+    findings.push({ deprecation, manifestMatches: mm, patternMatches: [] });
   }
 
   return { scannedFiles, manifestsScanned: manifests, findings };

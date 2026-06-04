@@ -77,6 +77,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
         vendor: f.deprecation.vendor,
         title: f.deprecation.title,
         severity: f.deprecation.severity,
+        match: f.deprecation.match,
         sunset_date: f.deprecation.sunset_date,
         migration_url: f.deprecation.migration_url,
         summary: f.deprecation.summary,

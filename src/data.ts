@@ -1,8 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
-import { Dataset, Deprecation, Severity } from "./types";
+import { Dataset, Deprecation, MatchMode, Severity } from "./types";
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
+const MATCH_MODES: MatchMode[] = ["pattern", "sdk", "version"];
 
 /**
  * Locate the bundled deprecations.json. Tries several candidate locations so the
@@ -48,16 +49,27 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
   const patterns =
     detect && isStringArray(detect.patterns) ? detect.patterns : [];
 
-  // An entry with neither SDKs nor patterns can never match — drop it.
-  if (sdk.length === 0 && patterns.length === 0) return null;
+  // Default to "pattern" — detection keys on real usage, not SDK presence.
+  const match: MatchMode = MATCH_MODES.includes(r.match as MatchMode)
+    ? (r.match as MatchMode)
+    : "pattern";
+  const version_range = isNonEmptyString(r.version_range)
+    ? r.version_range
+    : undefined;
+
+  // Drop entries that can never fire under their match mode.
+  if (match === "pattern" && patterns.length === 0) return null;
+  if ((match === "sdk" || match === "version") && sdk.length === 0) return null;
 
   return {
     id: r.id,
     vendor: r.vendor,
     title: r.title,
     severity: r.severity as Severity,
+    match,
     sunset_date: typeof r.sunset_date === "string" ? r.sunset_date : "",
     detect: { sdk, patterns },
+    version_range,
     migration_url: typeof r.migration_url === "string" ? r.migration_url : "",
     summary: typeof r.summary === "string" ? r.summary : "",
   };

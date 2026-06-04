@@ -4,6 +4,7 @@
     "vendor": "OpenAI",
     "title": "Assistants API (beta)",
     "severity": "high",
+    "match": "pattern",
     "sunset_date": "2026-08-26",
     "detect": {
       "sdk": ["openai"],
@@ -23,6 +24,7 @@
     "vendor": "Anthropic",
     "title": "Claude Sonnet 4 & Opus 4",
     "severity": "high",
+    "match": "pattern",
     "sunset_date": "2026-06-15",
     "detect": {
       "sdk": ["@anthropic-ai/sdk", "anthropic"],
@@ -42,6 +44,7 @@
     "vendor": "Anthropic",
     "title": "Retired Claude models (Haiku 3, 3.5/3.7 Sonnet, Claude 2.x)",
     "severity": "high",
+    "match": "pattern",
     "sunset_date": "2026-04-20",
     "detect": {
       "sdk": ["@anthropic-ai/sdk", "anthropic"],
@@ -63,6 +66,7 @@
     "vendor": "Google (Gemini)",
     "title": "Gemini 2.5 Pro / Flash / Flash-Lite",
     "severity": "high",
+    "match": "pattern",
     "sunset_date": "2026-10-16",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
@@ -81,6 +85,7 @@
     "vendor": "Google (Gemini)",
     "title": "Gemini 2.0 Flash family",
     "severity": "high",
+    "match": "pattern",
     "sunset_date": "2026-06-01",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
@@ -100,6 +105,7 @@
     "vendor": "Google (Gemini)",
     "title": "Gemini 1.0 / 1.5 models",
     "severity": "high",
+    "match": "pattern",
     "sunset_date": "2026-04-29",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],

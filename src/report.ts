@@ -68,23 +68,28 @@ function sunsetPhrase(s: Styler, sunsetDate: string, now: Date): string {
   return days <= 30 ? s.red(base + hint) : s.yellow(base + hint);
 }
 
-/** Group pattern matches by file into "path:line, line" summaries. */
+/** One line per source location: "path:line  →  matched text". */
 function formatPatternMatches(s: Styler, finding: Finding): string[] {
-  const byFile = new Map<string, number[]>();
-  for (const pm of finding.patternMatches) {
-    const arr = byFile.get(pm.file) ?? [];
-    arr.push(pm.line);
-    byFile.set(pm.file, arr);
-  }
-  const lines: string[] = [];
-  for (const [file, nums] of byFile) {
-    const uniqueSorted = Array.from(new Set(nums)).sort((a, b) => a - b);
-    const shown = uniqueSorted.slice(0, 8);
-    const more =
-      uniqueSorted.length > shown.length
-        ? s.gray(` +${uniqueSorted.length - shown.length} more`)
-        : "";
-    lines.push(`${s.cyan(file)}${s.gray(":")}${shown.join(s.gray(", "))}${more}`);
+  // De-duplicate identical file:line:text triples and order by file then line.
+  const seen = new Set<string>();
+  const items = finding.patternMatches.filter((pm) => {
+    const key = `${pm.file}:${pm.line}:${pm.text}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  items.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line);
+
+  const MAX = 12;
+  const shown = items.slice(0, MAX);
+  const lines = shown.map(
+    (pm) =>
+      `${s.cyan(pm.file)}${s.gray(":")}${pm.line}  ${s.gray("→")}  ${pm.text}`
+  );
+
+  const extra = items.length - shown.length;
+  if (extra > 0) {
+    lines.push(s.gray(`+${extra} more location${extra === 1 ? "" : "s"}`));
   }
   return lines;
 }

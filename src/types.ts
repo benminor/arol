@@ -1,8 +1,22 @@
 export type Severity = "high" | "medium" | "low";
 
+/**
+ * How a deprecation entry is triggered:
+ * - "pattern" (default): flag ONLY when one of detect.patterns matches in a scanned
+ *   source file. detect.sdk is a scope hint here, never a trigger.
+ * - "sdk": flag when a detect.sdk package appears in a manifest, regardless of code.
+ * - "version": flag when a detect.sdk package appears in a manifest AND its declared
+ *   version satisfies version_range (when one is given).
+ */
+export type MatchMode = "pattern" | "sdk" | "version";
+
 /** What signals indicate a deprecation is in use. */
 export interface Detect {
-  /** Dependency / module names to look for in manifests (package.json, requirements.txt, go.mod). */
+  /**
+   * Dependency / module names to look for in manifests (package.json,
+   * requirements.txt, go.mod). For match:"pattern" entries this is only a scope
+   * hint and is NOT a trigger; it is the trigger for match:"sdk"/"version".
+   */
   sdk: string[];
   /** Regular-expression strings matched against source file contents. */
   patterns: string[];
@@ -14,9 +28,17 @@ export interface Deprecation {
   vendor: string;
   title: string;
   severity: Severity;
+  /** How the entry is triggered. Defaults to "pattern" when omitted in the dataset. */
+  match: MatchMode;
   /** ISO date (YYYY-MM-DD) the API sunsets / loses support, or "" if there is no fixed date. */
   sunset_date: string;
   detect: Detect;
+  /**
+   * For match:"version" only — a simple range the declared SDK version must satisfy
+   * to flag, e.g. "<3.0.0", ">=1.2.0", "=2.1.0". Optional; if omitted, a "version"
+   * entry behaves like "sdk" (flags on mere presence).
+   */
+  version_range?: string;
   migration_url: string;
   summary: string;
 }
@@ -38,13 +60,13 @@ export interface ManifestMatch {
   version: string | null;
 }
 
-/** A single source-line that matched one of a deprecation's detect.patterns. */
+/** A single source location that matched one of a deprecation's detect.patterns. */
 export interface PatternMatch {
   /** Repo-relative path of the source file. */
   file: string;
   /** 1-based line number. */
   line: number;
-  /** The trimmed text of the matching line. */
+  /** The matched text (the substring that the pattern matched). */
   text: string;
 }
 
