@@ -1,0 +1,42 @@
+{
+  "name": "arol-ai",
+  "version": "0.1.0",
+  "description": "Scan a local repo for upcoming third-party API/SDK deprecations. Fully local — no network, no telemetry, your code never leaves the machine.",
+  "keywords": [
+    "deprecation",
+    "sdk",
+    "api",
+    "scanner",
+    "cli",
+    "migration",
+    "dependencies",
+    "audit"
+  ],
+  "homepage": "https://arol.ai",
+  "license": "MIT",
+  "type": "commonjs",
+  "bin": {
+    "arol-ai": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src/data/deprecations.json",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc",
+    "scan": "node dist/cli.js scan",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}
