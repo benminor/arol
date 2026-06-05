@@ -38,6 +38,27 @@ const IGNORED_DIRS = [
   "vendor",
 ];
 
+/**
+ * Files always skipped by default: documentation/prose (where model names show
+ * up as text, not code) and the tool's own dataset / config files.
+ */
+const DEFAULT_FILE_IGNORES = [
+  "**/*.md",
+  "**/*.mdx",
+  "**/*.txt",
+  "**/deprecations.json",
+  "**/.arolignore",
+  "**/arol.config.*",
+];
+
+/** Options controlling which files the scan walks. */
+export interface ScanOptions {
+  /** Extra ignore globs (e.g. from repeated --ignore flags). */
+  ignore?: string[];
+  /** Path to a custom dataset (--data) to also exclude from scanning. */
+  dataPath?: string;
+}
+
 /** Skip files larger than this (bytes) to keep the scan fast. */
 const MAX_FILE_BYTES = 2 * 1024 * 1024;
 
@@ -50,15 +71,43 @@ interface CompiledDeprecation {
   regexes: RegExp[];
 }
 
+/** Any of the three string-literal quote characters. */
+const QUOTE_CLASS = "['\"`]";
+
+/** Escape regex metacharacters in a literal model family name. */
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Build a regex that matches a model family ONLY inside a string literal:
+ * an opening quote, the (escaped) family name, an optional version/suffix, then
+ * the SAME closing quote. So a quoted model id (single, double, or backtick)
+ * and its versioned snapshots match, but never a bare occurrence in
+ * prose/JSX/markdown.
+ */
+function modelRegexSource(family: string): string {
+  return `(${QUOTE_CLASS})${escapeRegex(family)}[A-Za-z0-9._-]*\\1`;
+}
+
 function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[] {
   return deprecations.map((deprecation) => {
     const regexes: RegExp[] = [];
+    // Raw patterns — code identifiers, endpoints, params.
     for (const pattern of deprecation.detect.patterns) {
       try {
         // Global so we can iterate every match and derive line numbers.
         regexes.push(new RegExp(pattern, "g"));
       } catch {
         // A malformed pattern in the dataset must not crash the scan.
+      }
+    }
+    // Model names — only matched inside string literals (quote-anchored).
+    for (const family of deprecation.detect.models) {
+      try {
+        regexes.push(new RegExp(modelRegexSource(family), "g"));
+      } catch {
+        // Defensive: a pathological family name must not crash the scan.
       }
     }
     return { deprecation, regexes };
@@ -119,8 +168,8 @@ function scanContent(
         if (seenLines.has(line)) continue; // one record per line per pattern
         seenLines.add(line);
 
-        // Cite the matched substring itself (e.g. "beta.assistants"), normalized
-        // and length-capped, so the report points at exactly what triggered.
+        // Cite the matched substring itself, normalized and length-capped, so
+        // the report points at exactly what triggered the finding.
         const text = (m[0] ?? "").replace(/\s+/g, " ").trim().slice(0, 120);
 
         if (!recorded) {
@@ -208,12 +257,64 @@ function versionInRange(declared: string | null, range: string | undefined): boo
 }
 
 /**
+ * Convert one .arolignore line (gitignore-style) into fast-glob ignore globs.
+ * Supports comments (#), blank lines, leading "/" anchoring, and trailing "/"
+ * for directories. Negations ("!") are not supported and are skipped.
+ */
+function arolignoreLineToGlobs(rawLine: string): string[] {
+  let line = rawLine.trim();
+  if (!line || line.startsWith("#") || line.startsWith("!")) return [];
+
+  const anchored = line.startsWith("/");
+  if (anchored) line = line.slice(1);
+  const isDir = line.endsWith("/");
+  if (isDir) line = line.replace(/\/+$/, "");
+  if (!line) return [];
+
+  const base = anchored ? line : `**/${line}`;
+  // A directory ignore covers its contents; a file/glob ignore covers both the
+  // entry itself and (harmlessly) anything beneath it if it is a directory.
+  return isDir ? [`${base}/**`] : [base, `${base}/**`];
+}
+
+/** Read and parse a repo's .arolignore file into ignore globs (empty if none). */
+function loadArolignore(root: string): string[] {
+  let content: string;
+  try {
+    content = fs.readFileSync(path.join(root, ".arolignore"), "utf8");
+  } catch {
+    return [];
+  }
+  return content.split(/\r?\n/).flatMap(arolignoreLineToGlobs);
+}
+
+/**
  * Scan a repository for deprecation usage.
  * @param root repo root to scan.
  * @param deprecations validated dataset entries.
+ * @param options optional ignore globs (--ignore) and custom dataset path.
  */
-export function scanRepo(root: string, deprecations: Deprecation[]): ScanResult {
+export function scanRepo(
+  root: string,
+  deprecations: Deprecation[],
+  options: ScanOptions = {}
+): ScanResult {
   const absRoot = path.resolve(root);
+
+  // Assemble the ignore list: dirs + default file skips + .arolignore + --ignore.
+  const ignoreGlobs = [
+    ...IGNORED_DIRS.map((d) => `**/${d}/**`),
+    ...DEFAULT_FILE_IGNORES,
+    ...loadArolignore(absRoot),
+    ...(options.ignore ?? []),
+  ];
+  // Never scan the active custom dataset file, even if it lives in the tree.
+  if (options.dataPath) {
+    const relData = path.relative(absRoot, path.resolve(options.dataPath));
+    if (relData && !relData.startsWith("..") && !path.isAbsolute(relData)) {
+      ignoreGlobs.push(relData);
+    }
+  }
 
   // Partition by match mode: "pattern" entries key on real source usage, while
   // "sdk"/"version" entries key on the manifest.
@@ -239,7 +340,7 @@ export function scanRepo(root: string, deprecations: Deprecation[]): ScanResult 
       dot: false,
       followSymbolicLinks: false,
       suppressErrors: true,
-      ignore: IGNORED_DIRS.map((d) => `**/${d}/**`),
+      ignore: ignoreGlobs,
     }
   );
 

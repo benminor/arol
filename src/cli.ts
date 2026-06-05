@@ -33,6 +33,12 @@ interface ScanCliOptions {
   color: boolean;
   data?: string;
   failOn?: string;
+  ignore?: string[];
+}
+
+/** Commander collector so --ignore can be passed multiple times. */
+function collectIgnore(value: string, previous: string[]): string[] {
+  return previous.concat([value]);
 }
 
 function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
@@ -62,7 +68,10 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     return;
   }
 
-  const result = scanRepo(root, deprecations);
+  const result = scanRepo(root, deprecations, {
+    ignore: opts.ignore,
+    dataPath: opts.data,
+  });
 
   if (opts.json) {
     const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
@@ -125,6 +134,12 @@ function main(argv: string[]): void {
     .option(
       "--data <file>",
       "use a custom deprecations.json dataset instead of the bundled one"
+    )
+    .option(
+      "--ignore <glob>",
+      "skip files matching this glob (repeatable); also reads .arolignore",
+      collectIgnore,
+      []
     )
     .option(
       "--fail-on <severity>",

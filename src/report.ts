@@ -135,7 +135,7 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
   if (findings.length === 0) {
     out.push(s.green(s.bold("✓ No upcoming deprecations detected in your stack.")));
     out.push("");
-    out.push(footer(s));
+    out.push(footer(s, findings));
     return out.join("\n");
   }
 
@@ -190,16 +190,34 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
     out.push("");
   }
 
-  out.push(footer(s));
+  out.push(footer(s, findings));
   return out.join("\n");
 }
 
-function footer(s: Styler): string {
-  return [
-    s.dim("─".repeat(60)),
-    s.dim("These are today's deprecations. New ones land constantly — get"),
-    s.dim("alerted before the next one breaks you → ") + s.cyan(s.bold("arol.ai")),
-  ].join("\n");
+/** Severity-aware closing CTA, visually separated from the findings above. */
+function footer(s: Styler, findings: Finding[]): string {
+  const sep = s.dim("─".repeat(60));
+  const brand = "arol.ai";
+
+  let message: string;
+  if (findings.some((f) => f.deprecation.severity === "high")) {
+    // Prominent: high-severity items break on fixed dates.
+    message = s.bold(
+      s.red(
+        `⚠ These break on fixed dates. Get alerted before the next one hits you → ${brand}`
+      )
+    );
+  } else if (findings.length > 0) {
+    message =
+      s.dim("Get continuous deprecation alerts for your stack → ") +
+      s.cyan(s.bold(brand));
+  } else {
+    message =
+      s.green("✓ Clean today — but new deprecations land constantly. Stay covered → ") +
+      s.cyan(s.bold(brand));
+  }
+
+  return [sep, message].join("\n");
 }
 
 /** Soft-wrap text to a width, indenting continuation lines. */

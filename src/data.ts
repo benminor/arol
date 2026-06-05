@@ -48,6 +48,8 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
   const sdk = detect && isStringArray(detect.sdk) ? detect.sdk : [];
   const patterns =
     detect && isStringArray(detect.patterns) ? detect.patterns : [];
+  const models =
+    detect && isStringArray(detect.models) ? detect.models : [];
 
   // Default to "pattern" — detection keys on real usage, not SDK presence.
   const match: MatchMode = MATCH_MODES.includes(r.match as MatchMode)
@@ -58,7 +60,9 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     : undefined;
 
   // Drop entries that can never fire under their match mode.
-  if (match === "pattern" && patterns.length === 0) return null;
+  // A "pattern" entry fires on either a raw pattern OR a model-string match.
+  if (match === "pattern" && patterns.length === 0 && models.length === 0)
+    return null;
   if ((match === "sdk" || match === "version") && sdk.length === 0) return null;
 
   return {
@@ -68,7 +72,7 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     severity: r.severity as Severity,
     match,
     sunset_date: typeof r.sunset_date === "string" ? r.sunset_date : "",
-    detect: { sdk, patterns },
+    detect: { sdk, patterns, models },
     version_range,
     migration_url: typeof r.migration_url === "string" ? r.migration_url : "",
     summary: typeof r.summary === "string" ? r.summary : "",

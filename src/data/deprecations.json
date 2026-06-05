@@ -28,7 +28,8 @@
     "sunset_date": "2026-06-15",
     "detect": {
       "sdk": ["@anthropic-ai/sdk", "anthropic"],
-      "patterns": [
+      "patterns": [],
+      "models": [
         "claude-sonnet-4-20250514",
         "claude-opus-4-20250514",
         "claude-sonnet-4-0",
@@ -48,12 +49,13 @@
     "sunset_date": "2026-04-20",
     "detect": {
       "sdk": ["@anthropic-ai/sdk", "anthropic"],
-      "patterns": [
+      "patterns": [],
+      "models": [
         "claude-3-haiku-20240307",
         "claude-3-5-sonnet",
         "claude-3-7-sonnet",
-        "claude-2\\.1",
-        "claude-2\\.0",
+        "claude-2.1",
+        "claude-2.0",
         "claude-instant"
       ]
     },
@@ -70,11 +72,8 @@
     "sunset_date": "2026-10-16",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
-      "patterns": [
-        "gemini-2\\.5-pro",
-        "gemini-2\\.5-flash",
-        "gemini-2\\.5-flash-lite"
-      ]
+      "patterns": [],
+      "models": ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
     "summary": "Gemini 2.5 models scheduled for shutdown Oct 16, 2026 (Google states this is the earliest possible date). Migrate to Gemini 3.x.",
@@ -89,11 +88,12 @@
     "sunset_date": "2026-06-01",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
-      "patterns": [
-        "gemini-2\\.0-flash",
-        "gemini-2\\.0-flash-001",
-        "gemini-2\\.0-flash-lite",
-        "gemini-2\\.0-flash-lite-001"
+      "patterns": [],
+      "models": [
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-001",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash-lite-001"
       ]
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
@@ -109,15 +109,162 @@
     "sunset_date": "2026-04-29",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
-      "patterns": [
-        "gemini-1\\.5-pro",
-        "gemini-1\\.5-flash",
-        "gemini-1\\.0-pro",
-        "gemini-pro"
-      ]
+      "patterns": [],
+      "models": ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.0-pro", "gemini-pro"]
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
     "summary": "All Gemini 1.0 and 1.5 models are shut down and return 404. Migrate to Gemini 2.5+ or 3.x.",
     "source": "https://firebase.google.com/docs/ai-logic/models"
+  },
+  {
+    "id": "openai-gpt4-family-shutdown",
+    "vendor": "OpenAI",
+    "title": "GPT-4 family models (API shutdown)",
+    "severity": "high",
+    "match": "pattern",
+    "sunset_date": "2026-10-23",
+    "date_confidence": "verify",
+    "detect": {
+      "sdk": ["openai"],
+      "patterns": [],
+      "models": [
+        "gpt-4o",
+        "gpt-4-turbo",
+        "gpt-4-0613",
+        "gpt-4-0125-preview",
+        "gpt-4-1106-preview",
+        "gpt-4-32k",
+        "gpt-4-vision-preview",
+        "o4-mini",
+        "gpt-4.5-preview"
+      ]
+    },
+    "migration_url": "https://platform.openai.com/docs/deprecations",
+    "summary": "The GPT-4 family (gpt-4o snapshots, gpt-4-turbo, gpt-4-0613, o4-mini, etc.) is reported on a single API shutdown date of Oct 23, 2026; calls will then fail. Migrate to the GPT-5 family. VERIFY exact date and model membership on the official deprecations page before shipping.",
+    "source": "https://platform.openai.com/docs/deprecations"
+  },
+  {
+    "id": "openai-legacy-retired-models",
+    "vendor": "OpenAI",
+    "title": "Retired legacy OpenAI models (GPT-3 era, early snapshots)",
+    "severity": "high",
+    "match": "pattern",
+    "sunset_date": "2024-01-04",
+    "detect": {
+      "sdk": ["openai"],
+      "patterns": [],
+      "models": [
+        "text-davinci-003",
+        "text-davinci-002",
+        "gpt-3.5-turbo-0301",
+        "gpt-3.5-turbo-0613",
+        "gpt-4-0314",
+        "code-davinci",
+        "text-curie",
+        "text-babbage"
+      ]
+    },
+    "migration_url": "https://platform.openai.com/docs/deprecations",
+    "summary": "These legacy models (GPT-3-era completions and early dated GPT-4/3.5 snapshots) are already retired and return errors. Migrate to current models.",
+    "source": "https://platform.openai.com/docs/deprecations"
+  },
+  {
+    "id": "stripe-removed-js-methods",
+    "vendor": "Stripe",
+    "title": "Removed legacy Stripe.js methods",
+    "severity": "high",
+    "match": "pattern",
+    "sunset_date": "2026-03-25",
+    "detect": {
+      "sdk": ["@stripe/stripe-js", "stripe"],
+      "patterns": [
+        "handleCardPayment",
+        "confirmPaymentIntent",
+        "handleFpxPayment",
+        "handleCardSetup",
+        "confirmSetupIntent",
+        "createSource",
+        "retrieveSource"
+      ]
+    },
+    "migration_url": "https://docs.stripe.com/changelog/dahlia/2026-03-25/remove-legacy-stripejs-methods",
+    "summary": "These legacy Stripe.js methods were removed and now throw errors. Replace handleCardPayment/confirmPaymentIntent with confirmCardPayment, handleCardSetup/confirmSetupIntent with confirmCardSetup, and migrate createSource/retrieveSource to the PaymentMethods API.",
+    "source": "https://docs.stripe.com/changelog/dahlia/2026-03-25/remove-legacy-stripejs-methods"
+  },
+  {
+    "id": "stripe-sources-charges-legacy",
+    "vendor": "Stripe",
+    "title": "Sources API / legacy Charges API",
+    "severity": "medium",
+    "match": "pattern",
+    "sunset_date": "2024-05-15",
+    "detect": {
+      "sdk": ["stripe"],
+      "patterns": ["\\.sources\\.create", "charges\\.create", "Charge\\.create"]
+    },
+    "migration_url": "https://docs.stripe.com/payments/older-apis",
+    "summary": "The Sources API is deprecated (local payment methods stopped being accepted May 15, 2024) and the Charges API is legacy. Migrate to the PaymentMethods + PaymentIntents APIs.",
+    "source": "https://docs.stripe.com/payments/older-apis"
+  },
+  {
+    "id": "twilio-notify-eol",
+    "vendor": "Twilio",
+    "title": "Notify API",
+    "severity": "high",
+    "match": "pattern",
+    "sunset_date": "2027-01-31",
+    "date_confidence": "verify",
+    "detect": {
+      "sdk": ["twilio"],
+      "patterns": ["notify\\.v1", "\\.notify\\.services", "client\\.notify"]
+    },
+    "migration_url": "https://www.twilio.com/en-us/changelog",
+    "summary": "Twilio Notify reaches end of life Jan 31, 2027; after that all Notify API requests will fail. No 1:1 replacement — rebuild with Programmable Messaging / Conversations. Verify the date against Twilio's official EOL notice.",
+    "source": "https://www.courier.com/blog/twilio-notify-end-of-life"
+  },
+  {
+    "id": "twilio-programmable-chat-retired",
+    "vendor": "Twilio",
+    "title": "Programmable Chat API",
+    "severity": "high",
+    "match": "pattern",
+    "sunset_date": "2022-07-25",
+    "detect": {
+      "sdk": ["twilio", "twilio-chat"],
+      "patterns": ["chat\\.v2", "IpMessaging", "twilio-chat"]
+    },
+    "migration_url": "https://www.twilio.com/docs/conversations/migrating-chat-conversations",
+    "summary": "The standalone Programmable Chat API was sunset July 25, 2022 (Programmable Chat in Flex ended June 1, 2026). Migrate to the Conversations API.",
+    "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice"
+  },
+  {
+    "id": "aws-sdk-js-v2-eol",
+    "vendor": "AWS",
+    "title": "AWS SDK for JavaScript v2",
+    "severity": "medium",
+    "match": "sdk",
+    "sunset_date": "2025-09-08",
+    "detect": {
+      "sdk": ["aws-sdk"],
+      "patterns": []
+    },
+    "migration_url": "https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/",
+    "summary": "AWS SDK for JavaScript v2 (the 'aws-sdk' package) reached end-of-support Sept 8, 2025 — no more updates or security fixes. Migrate to the modular AWS SDK v3 (@aws-sdk/* packages).",
+    "source": "https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/"
+  },
+  {
+    "id": "hubspot-api-key-hapikey",
+    "vendor": "HubSpot",
+    "title": "Legacy API keys (hapikey)",
+    "severity": "high",
+    "match": "pattern",
+    "sunset_date": "2022-11-30",
+    "detect": {
+      "sdk": ["@hubspot/api-client"],
+      "patterns": ["hapikey\\s*=", "hapiKey\\s*="]
+    },
+    "migration_url": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset",
+    "summary": "HubSpot deprecated legacy API keys (the hapikey query param) on Nov 30, 2022; requests using hapikey now fail. Migrate to Private App access tokens (Bearer auth). The eCommerce Bridge and Accounting Extension APIs were also sunset Dec 1, 2022.",
+    "source": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset"
   }
 ]

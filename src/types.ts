@@ -18,8 +18,20 @@ export interface Detect {
    * hint and is NOT a trigger; it is the trigger for match:"sdk"/"version".
    */
   sdk: string[];
-  /** Regular-expression strings matched against source file contents. */
+  /**
+   * Raw regex strings matched against source file contents. Use for code
+   * identifiers, endpoint paths, and query params (method names, route
+   * fragments, auth params) — anything that is not a bare model id.
+   */
   patterns: string[];
+  /**
+   * Model family names matched ONLY when they appear inside a string literal.
+   * Each becomes a regex of: an opening quote (' " or `), the escaped family
+   * name, an optional [A-Za-z0-9._-]* version/suffix, then the matching closing
+   * quote. So a quoted model id (single, double, or backtick) and its versioned
+   * snapshots match, while a bare occurrence in prose/JSX/markdown does not.
+   */
+  models: string[];
 }
 
 /** One entry in deprecations.json. */
