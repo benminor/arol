@@ -5,6 +5,7 @@
     "title": "Assistants API (beta)",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2026-08-26",
     "detect": {
       "sdk": ["openai"],
@@ -25,6 +26,7 @@
     "title": "Claude Sonnet 4 & Opus 4",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2026-06-15",
     "detect": {
       "sdk": ["@anthropic-ai/sdk", "anthropic"],
@@ -46,6 +48,7 @@
     "title": "Retired Claude models (Haiku 3, 3.5/3.7 Sonnet, Claude 2.x)",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2026-04-20",
     "detect": {
       "sdk": ["@anthropic-ai/sdk", "anthropic"],
@@ -69,6 +72,7 @@
     "title": "Gemini 2.5 Pro / Flash / Flash-Lite",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2026-10-16",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
@@ -85,6 +89,7 @@
     "title": "Gemini 2.0 Flash family",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2026-06-01",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
@@ -106,11 +111,17 @@
     "title": "Gemini 1.0 / 1.5 models",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2026-04-29",
     "detect": {
       "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
       "patterns": [],
-      "models": ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.0-pro", "gemini-pro"]
+      "models": [
+        "gemini-1.5-pro",
+        "gemini-1.5-flash",
+        "gemini-1.0-pro",
+        "gemini-pro"
+      ]
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
     "summary": "All Gemini 1.0 and 1.5 models are shut down and return 404. Migrate to Gemini 2.5+ or 3.x.",
@@ -122,6 +133,7 @@
     "title": "GPT-4 family models (API shutdown)",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2026-10-23",
     "date_confidence": "verify",
     "detect": {
@@ -149,6 +161,7 @@
     "title": "Retired legacy OpenAI models (GPT-3 era, early snapshots)",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["*"],
     "sunset_date": "2024-01-04",
     "detect": {
       "sdk": ["openai"],
@@ -174,6 +187,7 @@
     "title": "Removed legacy Stripe.js methods",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2026-03-25",
     "detect": {
       "sdk": ["@stripe/stripe-js", "stripe"],
@@ -197,6 +211,7 @@
     "title": "Sources API / legacy Charges API",
     "severity": "medium",
     "match": "pattern",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2024-05-15",
     "detect": {
       "sdk": ["stripe"],
@@ -212,6 +227,7 @@
     "title": "Notify API",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2027-01-31",
     "date_confidence": "verify",
     "detect": {
@@ -228,6 +244,7 @@
     "title": "Programmable Chat API",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2022-07-25",
     "detect": {
       "sdk": ["twilio", "twilio-chat"],
@@ -243,6 +260,7 @@
     "title": "AWS SDK for JavaScript v2",
     "severity": "medium",
     "match": "sdk",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2025-09-08",
     "detect": {
       "sdk": ["aws-sdk"],
@@ -258,6 +276,7 @@
     "title": "Legacy API keys (hapikey)",
     "severity": "high",
     "match": "pattern",
+    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2022-11-30",
     "detect": {
       "sdk": ["@hubspot/api-client"],
@@ -266,5 +285,70 @@
     "migration_url": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset",
     "summary": "HubSpot deprecated legacy API keys (the hapikey query param) on Nov 30, 2022; requests using hapikey now fail. Migrate to Private App access tokens (Bearer auth). The eCommerce Bridge and Accounting Extension APIs were also sunset Dec 1, 2022.",
     "source": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset"
+  },
+  {
+    "id": "openai-python-v0-syntax",
+    "vendor": "OpenAI",
+    "title": "Legacy openai-python v0 call syntax",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": ["py"],
+    "sunset_date": "2023-11-06",
+    "detect": {
+      "sdk": ["openai"],
+      "patterns": [
+        "openai\\.ChatCompletion",
+        "openai\\.Completion\\.create",
+        "openai\\.Embedding\\.create",
+        "openai\\.Moderation\\.create"
+      ]
+    },
+    "migration_url": "https://github.com/openai/openai-python/discussions/742",
+    "summary": "openai-python v1.0 (Nov 2023) removed module-level calls. openai.ChatCompletion/Completion/Embedding.create now raise APIRemovedInV1. Instantiate a client (client = OpenAI(); client.chat.completions.create(...)) or run `openai migrate`.",
+    "source": "https://github.com/openai/openai-python/issues/2172"
+  },
+  {
+    "id": "vercel-ai-sdk-v5-removed",
+    "vendor": "Vercel (AI SDK)",
+    "title": "AI SDK v4→v5/v6 removed APIs",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
+    "sunset_date": "2025-07-31",
+    "detect": {
+      "sdk": ["ai"],
+      "patterns": [
+        "from ['\"]ai/react['\"]",
+        "from ['\"]ai/openai['\"]",
+        "experimental_streamText",
+        "experimental_generateText",
+        "StreamingTextResponse"
+      ]
+    },
+    "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0",
+    "summary": "AI SDK v5 (Jul 2025) removed deprecated APIs: 'ai/react' → '@ai-sdk/react', experimental_streamText → streamText, StreamingTextResponse removed, useChat maxSteps removed. v6 moved provider imports ('ai/openai' → '@ai-sdk/openai').",
+    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0"
+  },
+  {
+    "id": "langchain-legacy-imports",
+    "vendor": "LangChain",
+    "title": "Legacy LangChain imports & chains",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": ["py"],
+    "sunset_date": "2024-05-01",
+    "detect": {
+      "sdk": ["langchain"],
+      "patterns": [
+        "from langchain\\.llms import",
+        "from langchain\\.chat_models import",
+        "from langchain\\.embeddings import",
+        "initialize_agent",
+        "LLMChain"
+      ]
+    },
+    "migration_url": "https://python.langchain.com/docs/versions/v0_2/",
+    "summary": "Pre-0.2 LangChain imports are deprecated/removed: langchain.llms/chat_models/embeddings → langchain_community or provider packages (langchain_openai). LLMChain and initialize_agent are deprecated (use LCEL / create_agent; legacy moved to langchain-classic in 1.0).",
+    "source": "https://github.com/langchain-ai/langchain/discussions/19083"
   }
 ]

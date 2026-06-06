@@ -42,6 +42,13 @@ export interface Deprecation {
   severity: Severity;
   /** How the entry is triggered. Defaults to "pattern" when omitted in the dataset. */
   match: MatchMode;
+  /**
+   * File extensions (without the dot, lowercased) this entry's patterns/models are
+   * valid in — e.g. ["py"], ["js","ts","jsx","tsx","mjs"], or ["*"] to match any
+   * scanned file. The inline scan only tests an entry against files whose extension
+   * is listed here. Defaults to ["*"] when omitted.
+   */
+  applies_to: string[];
   /** ISO date (YYYY-MM-DD) the API sunsets / loses support, or "" if there is no fixed date. */
   sunset_date: string;
   detect: Detect;

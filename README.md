@@ -76,9 +76,14 @@ Flags **only** when your code actually references the deprecated API in a scanne
 
 This split is what keeps a marketing page that mentions *"GPT-4o, GPT-4.1, and o4-mini"* from being reported as deprecated usage: those names aren't quoted string literals, so `detect.models` ignores them. Only something like `model: "o4-mini"` counts.
 
+Two more layers keep matches context-aware:
+
+- **Language scoping (`applies_to`).** Each entry lists the file extensions its signals are valid in (e.g. `["py"]`, `["js","ts","jsx","tsx","mjs"]`, or `["*"]` for model strings). An entry is only tested against files with a matching extension, so a Python-only pattern like `openai.ChatCompletion` never fires in a `.tsx` file. Defaults to `["*"]` when omitted.
+- **Comment stripping.** Before matching, comments are blanked out per language — `//`, `/* */`, JSX `{/* */}`, and `#` (Python). Stripping is string-aware: a marker inside a string literal (e.g. the `//` in `"https://…"`) is **not** treated as a comment, and offsets are preserved so reported line numbers stay exact. A commented-out `model: "gpt-4o"` is ignored; the real call on the next line is not.
+
 Each hit records the **file path, line number, and matched text**, and one deprecation aggregates **all** of its matched locations into a single finding.
 
-> Having the `openai` package in `requirements.txt` does **not** flag the Assistants API deprecation. Your code has to actually use `beta.assistants` / a deprecated model id (etc.).
+> Having the `openai` package in `requirements.txt` does **not** flag the Assistants API deprecation. Your code has to actually use `beta.assistants` / a deprecated model id (etc.), in a file of the right language, outside comments.
 
 **Files scanned / skipped**
 
@@ -142,6 +147,7 @@ The dataset is either a bare array of entries, or a `{ "deprecations": [ ... ] }
   "title": "Assistants API (beta)", // short headline (required)
   "severity": "high",               // "high" | "medium" | "low" (required)
   "match": "pattern",               // "pattern" (default) | "sdk" | "version"
+  "applies_to": ["py","js","ts","jsx","tsx","mjs"], // extensions to test; ["*"] = any
   "sunset_date": "2026-08-26",      // ISO YYYY-MM-DD, or "" if no fixed date
   "detect": {
     "sdk": ["openai"],              // scope hint for "pattern"; the trigger for "sdk"/"version"
@@ -157,7 +163,7 @@ The dataset is either a bare array of entries, or a `{ "deprecations": [ ... ] }
 }
 ```
 
-A model-retirement entry uses `detect.models` so it only fires on a quoted model id, never on prose:
+A model-retirement entry uses `detect.models` (and `applies_to: ["*"]`) so it only fires on a quoted model id, in any language, never on prose:
 
 ```jsonc
 {
@@ -166,6 +172,7 @@ A model-retirement entry uses `detect.models` so it only fires on a quoted model
   "title": "GPT-4 family models (API shutdown)",
   "severity": "high",
   "match": "pattern",
+  "applies_to": ["*"],
   "sunset_date": "2026-10-23",
   "detect": {
     "sdk": ["openai"],
@@ -174,6 +181,23 @@ A model-retirement entry uses `detect.models` so it only fires on a quoted model
   },
   "migration_url": "https://platform.openai.com/docs/deprecations",
   "summary": "Migrate to the GPT-5 family."
+}
+```
+
+A Python-only entry scopes itself with `applies_to: ["py"]`, so its patterns never fire in JS/TSX files that merely mention the API in prose:
+
+```jsonc
+{
+  "id": "openai-python-v0-syntax",
+  "vendor": "OpenAI",
+  "title": "Legacy openai-python v0 call syntax",
+  "severity": "high",
+  "match": "pattern",
+  "applies_to": ["py"],
+  "sunset_date": "2023-11-06",
+  "detect": { "sdk": ["openai"], "patterns": ["openai\\.ChatCompletion"] },
+  "migration_url": "https://github.com/openai/openai-python/discussions/742",
+  "summary": "Instantiate a client: client.chat.completions.create(...)."
 }
 ```
 
@@ -203,6 +227,7 @@ A `version` entry instead flags on the installed SDK version (no patterns needed
 | `title` | string | ✓ | Short headline for the finding. |
 | `severity` | `"high"` \| `"medium"` \| `"low"` | ✓ | Drives color, sort order, and `--fail-on`. |
 | `match` | `"pattern"` \| `"sdk"` \| `"version"` | – | How the entry is triggered. **Defaults to `"pattern"`** when omitted. See [How detection works](#how-detection-works). |
+| `applies_to` | string[] | – | File extensions (no dot) the entry's patterns/models are tested against, e.g. `["py"]` or `["js","ts","jsx","tsx","mjs"]`. Use `["*"]` for any file (model strings). **Defaults to `["*"]`** when omitted. |
 | `version_range` | string | – | For `match: "version"` only — e.g. `"<3.0.0"`, `">=1.2.0"`, `"=2.1.0"`. If omitted, a `version` entry behaves like `"sdk"`. |
 | `sunset_date` | string | – | ISO `YYYY-MM-DD`. Use `""` for unmaintained/no-fixed-date items; the report shows a relative hint (e.g. *"in 42 days"* / *"passed 12 days ago"*). |
 | `detect.sdk` | string[] | – | Manifest dependency/module names. For `match: "pattern"` this is only a **scope hint and never triggers** a finding; for `sdk`/`version` it is the trigger. |

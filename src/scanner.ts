@@ -69,6 +69,8 @@ const MAX_MATCHES_PER_PATTERN_PER_FILE = 50;
 interface CompiledDeprecation {
   deprecation: Deprecation;
   regexes: RegExp[];
+  /** Lowercased extensions this entry applies to; `*` means any. */
+  appliesTo: Set<string>;
 }
 
 /** Any of the three string-literal quote characters. */
@@ -110,8 +112,124 @@ function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[]
         // Defensive: a pathological family name must not crash the scan.
       }
     }
-    return { deprecation, regexes };
+    const appliesTo = new Set(
+      (deprecation.applies_to.length > 0 ? deprecation.applies_to : ["*"]).map(
+        (e) => e.toLowerCase()
+      )
+    );
+    return { deprecation, regexes, appliesTo };
   });
+}
+
+/** True if a compiled entry should be tested against a file with this extension. */
+function appliesToExt(compiled: CompiledDeprecation, ext: string): boolean {
+  return compiled.appliesTo.has("*") || compiled.appliesTo.has(ext);
+}
+
+/** Per-language comment + string syntax used to de-comment source before matching. */
+interface LangComments {
+  /** Line-comment starters (rest of line is a comment). */
+  line: string[];
+  /** Block-comment open/close pairs (the C-style pair also covers JSX comments). */
+  block: [string, string][];
+  /** Single-char string delimiters (content is preserved, never stripped). */
+  strings: string[];
+  /** Triple-char string delimiters (e.g. Python docstrings). */
+  triple: string[];
+}
+
+function commentConfig(ext: string): LangComments | null {
+  switch (ext) {
+    case "js":
+    case "mjs":
+    case "cjs":
+    case "jsx":
+    case "ts":
+    case "mts":
+    case "cts":
+    case "tsx":
+    case "go":
+      return { line: ["//"], block: [["/*", "*/"]], strings: ["'", '"', "`"], triple: [] };
+    case "py":
+      return { line: ["#"], block: [], strings: ["'", '"'], triple: ['"""', "'''"] };
+    default:
+      return null;
+  }
+}
+
+/**
+ * Replace comments with spaces so they don't match, while preserving the exact
+ * byte length and all newlines — line/column offsets stay correct. String literals
+ * (including their contents) are left intact, so a comment marker inside a string
+ * (e.g. "https://…") is NOT treated as a comment.
+ */
+function stripComments(src: string, cfg: LangComments): string {
+  const out = src.split("");
+  const n = src.length;
+  const at = (s: string, i: number): boolean => src.startsWith(s, i);
+  const blank = (from: number, to: number): void => {
+    for (let k = from; k < to; k++) if (out[k] !== "\n") out[k] = " ";
+  };
+
+  let i = 0;
+  while (i < n) {
+    // Triple-quoted strings (Python) — checked before single quotes.
+    let matched = false;
+    for (const t of cfg.triple) {
+      if (at(t, i)) {
+        i += t.length;
+        while (i < n && !at(t, i)) i++;
+        i += t.length;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+
+    // Ordinary string literals — preserve contents verbatim.
+    for (const q of cfg.strings) {
+      if (src[i] === q) {
+        i++;
+        while (i < n && src[i] !== q) {
+          if (src[i] === "\\") i++; // skip escaped char
+          i++;
+        }
+        i++; // closing quote (or past end if unterminated)
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+
+    // Block comments.
+    for (const [open, close] of cfg.block) {
+      if (at(open, i)) {
+        const end = src.indexOf(close, i + open.length);
+        const stop = end === -1 ? n : end + close.length;
+        blank(i, stop);
+        i = stop;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+
+    // Line comments.
+    for (const lc of cfg.line) {
+      if (at(lc, i)) {
+        let k = i;
+        while (k < n && src[k] !== "\n") k++;
+        blank(i, k);
+        i = k;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+
+    i++;
+  }
+  return out.join("");
 }
 
 /** Precompute the byte offset at which each line starts. */
@@ -362,7 +480,18 @@ export function scanRepo(
       continue;
     }
     scannedFiles++;
-    scanContent(content, rel, compiled, patternSink);
+
+    // Language scoping: only test entries valid for this file's extension.
+    const ext = path.extname(rel).slice(1).toLowerCase();
+    const applicable = compiled.filter((c) => appliesToExt(c, ext));
+    if (applicable.length === 0) continue;
+
+    // Comment stripping: match against de-commented source so mentions in
+    // comments don't count. Offsets are preserved, so line numbers stay correct.
+    const cfg = commentConfig(ext);
+    const scanText = cfg ? stripComments(content, cfg) : content;
+
+    scanContent(scanText, rel, applicable, patternSink);
   }
 
   // 3. Build findings — one per deprecation, evaluated per its match mode.

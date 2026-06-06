@@ -59,6 +59,13 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     ? r.version_range
     : undefined;
 
+  // Language scoping: extensions this entry's patterns are valid in.
+  // Normalize to lowercase, dot-stripped; default to ["*"] (match any file).
+  const applies_to =
+    isStringArray(r.applies_to) && r.applies_to.length > 0
+      ? r.applies_to.map((e) => e.toLowerCase().replace(/^\./, ""))
+      : ["*"];
+
   // Drop entries that can never fire under their match mode.
   // A "pattern" entry fires on either a raw pattern OR a model-string match.
   if (match === "pattern" && patterns.length === 0 && models.length === 0)
@@ -71,6 +78,7 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     title: r.title,
     severity: r.severity as Severity,
     match,
+    applies_to,
     sunset_date: typeof r.sunset_date === "string" ? r.sunset_date : "",
     detect: { sdk, patterns, models },
     version_range,
