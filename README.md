@@ -72,7 +72,7 @@ Detection keys on **actual usage, not mere SDK presence.** Each dataset entry de
 Flags **only** when your code actually references the deprecated API in a scanned **source file**. `detect.sdk` is just a scope hint here and is **never** a trigger on its own. A `pattern` entry carries two kinds of usage signal:
 
 - **`detect.patterns`** — raw regexes for code identifiers, endpoints, and params (e.g. `beta\.assistants`, `/v1/threads`, `charges\.create`, `hapikey\s*=`). Matched anywhere in the file.
-- **`detect.models`** — model family names matched **only inside a string literal**. Each becomes: an opening quote (`'` `"` or `` ` ``), the family name, an optional `[A-Za-z0-9._-]*` version/suffix, then the matching closing quote. So `"gpt-4o"`, `'gpt-4o'`, `` `gpt-4o` ``, and `"gpt-4o-2024-05-13"` match — but the same name sitting in prose, JSX, or a comment does **not**.
+- **`detect.models`** — model family names matched **only inside a string literal**. Each becomes: an opening quote (`'` `"` or `` ` ``), the family name, an **optional ISO date snapshot** (`-YYYY-MM-DD`), then the matching closing quote — no arbitrary trailing characters. So `"gpt-4o"`, `'gpt-4o'`, `` `gpt-4o` ``, and `"gpt-4o-2024-05-13"` match, but a *different* model like `"gpt-4o-mini"` or `"gpt-4o-realtime-preview"` does **not** (and neither does a bare mention in prose, JSX, or a comment).
 
 This split is what keeps a marketing page that mentions *"GPT-4o, GPT-4.1, and o4-mini"* from being reported as deprecated usage: those names aren't quoted string literals, so `detect.models` ignores them. Only something like `model: "o4-mini"` counts.
 
@@ -117,16 +117,19 @@ arol-ai scan [path] [options]
 | `--no-color` | Disable colored output (also respects `NO_COLOR`) |
 | `--data <file>` | Use a custom `deprecations.json` instead of the bundled one |
 | `--ignore <glob>` | Skip files matching this glob; repeatable. Combined with `.arolignore`. e.g. `--ignore 'docs/**' --ignore '**/*.gen.ts'` |
-| `--fail-on <severity>` | Exit non-zero if findings meet a level: `high` \| `medium` \| `low` \| `any` \| `none` (default `none`) |
+| `--within <days>` | Window (default `30`) for the CI gate's "scheduled soon" check. See exit codes. |
 | `-v, --version` | Print the version |
 | `-h, --help` | Show help |
 
 `scan` is the default command, so `arol-ai ./repo` works too.
 
-**Exit codes:** `0` success · `1` `--fail-on` threshold met · `2` bad path or dataset error. The `--fail-on` flag makes `arol-ai` useful as a CI gate:
+**Exit codes:** `0` success · `1` an actionable finding · `2` bad path or dataset error.
+
+A finding is **actionable** (exit `1`) when it is **high**-severity, or **scheduled** to sunset within `--within` days (default 30). Dateless `deprecated` findings and non-imminent `medium`/`low` findings are **warn-only** (still printed, but exit `0`). This makes `arol-ai` a sensible CI gate with no flags:
 
 ```sh
-npx arol-ai scan --fail-on high
+npx arol-ai scan            # fails CI on high or imminently-scheduled findings
+npx arol-ai scan --within 7 # only fail when a sunset is within a week
 ```
 
 Colors are automatically disabled when output is not a TTY (e.g. piped to a file), or when `NO_COLOR` is set. Use `FORCE_COLOR=1` to force them on.
@@ -148,7 +151,7 @@ The dataset is either a bare array of entries, or a `{ "deprecations": [ ... ] }
   "severity": "high",               // "high" | "medium" | "low" (required)
   "match": "pattern",               // "pattern" (default) | "sdk" | "version"
   "applies_to": ["py","js","ts","jsx","tsx","mjs"], // extensions to test; ["*"] = any
-  "sunset_date": "2026-08-26",      // ISO YYYY-MM-DD, or "" if no fixed date
+  "sunset_date": "2026-08-26",      // ISO YYYY-MM-DD, or null if no date announced
   "detect": {
     "sdk": ["openai"],              // scope hint for "pattern"; the trigger for "sdk"/"version"
     "patterns": [                   // raw regexes: identifiers, endpoints, params
@@ -211,10 +214,28 @@ A `version` entry instead flags on the installed SDK version (no patterns needed
   "severity": "medium",
   "match": "version",
   "version_range": "<3.0.0",        // flags only when the declared version is in range
-  "sunset_date": "",
+  "sunset_date": null,
   "detect": { "sdk": ["example-sdk"], "patterns": [] },
   "migration_url": "https://example.com/migrate",
   "summary": "Upgrade example-sdk to v3+."
+}
+```
+
+A **dateless** entry — deprecated with no removal date announced. `sunset_date: null`
+makes its status `deprecated`; it renders *"deprecated · no removal date announced"* and
+is warn-only (exit 0) unless it's high-severity:
+
+```jsonc
+{
+  "id": "resend-audiences-deprecated",
+  "vendor": "Resend",
+  "title": "Audiences API (deprecated in favor of Segments)",
+  "severity": "medium",
+  "match": "pattern",
+  "sunset_date": null,              // no removal date → status derives to "deprecated"
+  "detect": { "sdk": ["resend"], "patterns": ["\\.audiences\\."] },
+  "migration_url": "https://resend.com/docs/dashboard/segments",
+  "summary": "Migrate audiences.* calls to the Segments API."
 }
 ```
 
@@ -225,14 +246,15 @@ A `version` entry instead flags on the installed SDK version (no patterns needed
 | `id` | string | ✓ | Unique, stable slug. |
 | `vendor` | string | ✓ | Displayed before the title. |
 | `title` | string | ✓ | Short headline for the finding. |
-| `severity` | `"high"` \| `"medium"` \| `"low"` | ✓ | Drives color, sort order, and `--fail-on`. |
+| `severity` | `"high"` \| `"medium"` \| `"low"` | ✓ | Drives color, sort order, and the CI gate (high always fails). |
 | `match` | `"pattern"` \| `"sdk"` \| `"version"` | – | How the entry is triggered. **Defaults to `"pattern"`** when omitted. See [How detection works](#how-detection-works). |
+| `status` | `"deprecated"` \| `"scheduled"` \| `"retired"` | – | Lifecycle status. **Usually omit** — it's derived at runtime from `sunset_date`. Set explicitly only to override (e.g. force `"deprecated"`). |
 | `applies_to` | string[] | – | File extensions (no dot) the entry's patterns/models are tested against, e.g. `["py"]` or `["js","ts","jsx","tsx","mjs"]`. Use `["*"]` for any file (model strings). **Defaults to `["*"]`** when omitted. |
 | `version_range` | string | – | For `match: "version"` only — e.g. `"<3.0.0"`, `">=1.2.0"`, `"=2.1.0"`. If omitted, a `version` entry behaves like `"sdk"`. |
-| `sunset_date` | string | – | ISO `YYYY-MM-DD`. Use `""` for unmaintained/no-fixed-date items; the report shows a relative hint (e.g. *"in 42 days"* / *"passed 12 days ago"*). |
+| `sunset_date` | string \| null | – | ISO `YYYY-MM-DD`, or **`null`** when no removal date is announced. Derived status: `null` → `deprecated`, future → `scheduled` (`"sunsets {date} (in N days)"`), past → `retired` (`"retired {date} (N days ago)"`). A dateless entry renders *"deprecated · no removal date announced"* and never runs date math. |
 | `detect.sdk` | string[] | – | Manifest dependency/module names. For `match: "pattern"` this is only a **scope hint and never triggers** a finding; for `sdk`/`version` it is the trigger. |
 | `detect.patterns` | string[] | – | **JSON-escaped** regex strings (so `\d` becomes `\\d`). For code identifiers, endpoints, and params. Matched anywhere in a source file; invalid regexes are skipped safely. |
-| `detect.models` | string[] | – | Model family names matched **only inside string literals** (quote-anchored, with an optional version suffix). Use this for model ids so prose/JSX mentions don't false-positive. Write the raw name (e.g. `gpt-4.5-preview`) — escaping is automatic. |
+| `detect.models` | string[] | – | Model family names matched **only inside string literals** (quote-anchored; allows an optional trailing ISO date snapshot `-YYYY-MM-DD`, nothing else). Use this for model ids so prose/JSX mentions don't false-positive and a family never matches a different model. Write the raw name (e.g. `gpt-4.5-preview`) — escaping is automatic. List dated/revisioned snapshots explicitly if they use a non-ISO suffix (e.g. Anthropic's `-20241022`). |
 | `migration_url` | string | – | Link shown in the report. |
 | `summary` | string | – | One or two sentences of guidance. |
 
@@ -241,7 +263,7 @@ A `version` entry instead flags on the installed SDK version (no patterns needed
 ### Writing good patterns & models
 
 - **Put model ids in `detect.models`, not `detect.patterns`.** A bare model id as a raw pattern matches prose, JSX, comments, and changelogs. `detect.models` requires a quoted string literal, which is what real usage looks like (`model: "o4-mini"`).
-- For `detect.models`, write the **raw family name** (e.g. `gpt-4.5-preview`, `claude-opus-4-20250514`) — escaping and quote-anchoring are automatic. The optional suffix means `gpt-4o` also catches `"gpt-4o-2024-05-13"`, so pick a family specific enough not to swallow a non-deprecated successor.
+- For `detect.models`, write the **raw family name** (e.g. `gpt-4.5-preview`, `claude-opus-4-20250514`) — escaping and quote-anchoring are automatic. Matching is exact except for an optional trailing ISO date snapshot, so `gpt-4o` catches `"gpt-4o"` and `"gpt-4o-2024-05-13"` but **not** `"gpt-4o-mini"`. If a deprecated snapshot uses a non-ISO suffix (Anthropic's `claude-3-5-sonnet-20241022`, Gemini's `gemini-1.5-pro-002`), add that full id as its own `models` entry.
 - For `detect.patterns`, match the **deprecated surface itself** — the method/property (`beta\.assistants`), endpoint path (`/v1/threads`), or param (`hapikey\s*=`) — not the import or package name. Importing an SDK isn't usage; calling the removed API is. Keep them specific (`client\.chat` is too broad — it hits unrelated SDKs).
 - Patterns are matched **case-sensitively** with the global flag over each file's contents; the file path, line number, and matched text are reported.
 - Escape backslashes (and literal dots) for JSON: a regex `beta\.assistants` is written `"beta\\.assistants"`. (Model entries don't need this — write `gpt-4.5-preview` as-is.)

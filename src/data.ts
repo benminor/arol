@@ -1,9 +1,10 @@
 import * as fs from "fs";
 import * as path from "path";
-import { Dataset, Deprecation, MatchMode, Severity } from "./types";
+import { Dataset, Deprecation, MatchMode, Severity, Status } from "./types";
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const MATCH_MODES: MatchMode[] = ["pattern", "sdk", "version"];
+const STATUSES: Status[] = ["deprecated", "scheduled", "retired"];
 
 /**
  * Locate the bundled deprecations.json. Tries several candidate locations so the
@@ -59,6 +60,13 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     ? r.version_range
     : undefined;
 
+  // Dateless deprecations: null / missing / "" all mean "no removal date".
+  const sunset_date = isNonEmptyString(r.sunset_date) ? r.sunset_date : null;
+  // Honor an explicit, valid status; otherwise leave it for runtime derivation.
+  const status = STATUSES.includes(r.status as Status)
+    ? (r.status as Status)
+    : undefined;
+
   // Language scoping: extensions this entry's patterns are valid in.
   // Normalize to lowercase, dot-stripped; default to ["*"] (match any file).
   const applies_to =
@@ -78,8 +86,9 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     title: r.title,
     severity: r.severity as Severity,
     match,
+    status,
     applies_to,
-    sunset_date: typeof r.sunset_date === "string" ? r.sunset_date : "",
+    sunset_date,
     detect: { sdk, patterns, models },
     version_range,
     migration_url: typeof r.migration_url === "string" ? r.migration_url : "",

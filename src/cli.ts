@@ -6,6 +6,7 @@ import { loadDeprecations } from "./data";
 import { scanRepo } from "./scanner";
 import { renderReport } from "./report";
 import { Severity } from "./types";
+import { daysUntil, effectiveStatus } from "./status";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -26,13 +27,14 @@ function shouldUseColor(colorFlag: boolean): boolean {
   return Boolean(process.stdout.isTTY);
 }
 
-const SEVERITY_RANK: Record<Severity, number> = { high: 3, medium: 2, low: 1 };
+/** Default window (days) within which a scheduled finding fails the CI gate. */
+const DEFAULT_WITHIN_DAYS = 30;
 
 interface ScanCliOptions {
   json?: boolean;
   color: boolean;
   data?: string;
-  failOn?: string;
+  within?: string;
   ignore?: string[];
 }
 
@@ -73,6 +75,9 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     dataPath: opts.data,
   });
 
+  // One clock for the whole run, so rendering and the exit gate agree.
+  const now = new Date();
+
   if (opts.json) {
     const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
     for (const f of result.findings) counts[f.deprecation.severity]++;
@@ -87,6 +92,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
         title: f.deprecation.title,
         severity: f.deprecation.severity,
         match: f.deprecation.match,
+        status: effectiveStatus(f.deprecation, now),
         sunset_date: f.deprecation.sunset_date,
         migration_url: f.deprecation.migration_url,
         summary: f.deprecation.summary,
@@ -96,22 +102,28 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     };
     process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
   } else {
-    const report = renderReport(result, { color: shouldUseColor(opts.color) });
+    const report = renderReport(result, {
+      color: shouldUseColor(opts.color),
+      now,
+    });
     process.stdout.write(report + "\n");
   }
 
-  // Optional CI gate: exit non-zero if a finding meets/exceeds the threshold.
-  const failOn = opts.failOn?.toLowerCase();
-  if (failOn && failOn !== "none") {
-    const threshold =
-      failOn === "any"
-        ? 1
-        : SEVERITY_RANK[failOn as Severity] ?? Number.POSITIVE_INFINITY;
-    const tripped = result.findings.some(
-      (f) => SEVERITY_RANK[f.deprecation.severity] >= threshold
-    );
-    if (tripped) process.exitCode = 1;
-  }
+  // CI gate: exit non-zero only for an actionable finding — any "high"-severity
+  // finding, or a "scheduled" finding landing within `--within` days (default 30).
+  // Dateless "deprecated" and non-imminent medium/low findings are warn-only.
+  const parsedWithin = opts.within !== undefined ? parseInt(opts.within, 10) : NaN;
+  const within =
+    Number.isFinite(parsedWithin) && parsedWithin >= 0
+      ? parsedWithin
+      : DEFAULT_WITHIN_DAYS;
+  const tripped = result.findings.some((f) => {
+    if (f.deprecation.severity === "high") return true;
+    if (effectiveStatus(f.deprecation, now) !== "scheduled") return false;
+    const days = daysUntil(f.deprecation.sunset_date, now);
+    return days !== null && days >= 0 && days <= within;
+  });
+  if (tripped) process.exitCode = 1;
 }
 
 function main(argv: string[]): void {
@@ -142,9 +154,8 @@ function main(argv: string[]): void {
       []
     )
     .option(
-      "--fail-on <severity>",
-      "exit non-zero if findings meet this level: high | medium | low | any | none",
-      "none"
+      "--within <days>",
+      "fail (exit 1) on scheduled sunsets landing within this many days (default 30); high-severity findings always fail"
     )
     .action((pathArg: string | undefined, options: ScanCliOptions) => {
       runScan(pathArg, options);

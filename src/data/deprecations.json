@@ -128,32 +128,20 @@
     "source": "https://firebase.google.com/docs/ai-logic/models"
   },
   {
-    "id": "openai-gpt4-family-shutdown",
+    "id": "openai-retired-gpt4-variants",
     "vendor": "OpenAI",
-    "title": "GPT-4 family models (API shutdown)",
+    "title": "Retired GPT-4 preview/variant models",
     "severity": "high",
     "match": "pattern",
     "applies_to": ["*"],
-    "sunset_date": "2026-10-23",
-    "date_confidence": "verify",
+    "sunset_date": "2025-07-14",
     "detect": {
       "sdk": ["openai"],
-      "patterns": [],
-      "models": [
-        "gpt-4o",
-        "gpt-4-turbo",
-        "gpt-4-0613",
-        "gpt-4-0125-preview",
-        "gpt-4-1106-preview",
-        "gpt-4-32k",
-        "gpt-4-vision-preview",
-        "o4-mini",
-        "gpt-4.5-preview"
-      ]
+      "models": ["gpt-4-vision-preview", "gpt-4-32k", "gpt-4.5-preview"]
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
-    "summary": "The GPT-4 family (gpt-4o snapshots, gpt-4-turbo, gpt-4-0613, o4-mini, etc.) is reported on a single API shutdown date of Oct 23, 2026; calls will then fail. Migrate to the GPT-5 family. VERIFY exact date and model membership on the official deprecations page before shipping.",
-    "source": "https://platform.openai.com/docs/deprecations"
+    "summary": "These GPT-4 variant/preview models are already retired from the API and return errors: gpt-4-vision-preview (~Dec 2024), gpt-4-32k (~mid-2025), gpt-4.5-preview (July 14, 2025). Migrate to gpt-4.1 or the GPT-5 family.",
+    "source": "https://developers.openai.com/api/docs/deprecations"
   },
   {
     "id": "openai-legacy-retired-models",
@@ -350,5 +338,22 @@
     "migration_url": "https://python.langchain.com/docs/versions/v0_2/",
     "summary": "Pre-0.2 LangChain imports are deprecated/removed: langchain.llms/chat_models/embeddings → langchain_community or provider packages (langchain_openai). LLMChain and initialize_agent are deprecated (use LCEL / create_agent; legacy moved to langchain-classic in 1.0).",
     "source": "https://github.com/langchain-ai/langchain/discussions/19083"
+  },
+  {
+    "id": "resend-audiences-deprecated",
+    "vendor": "Resend",
+    "title": "Audiences API (deprecated in favor of Segments)",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs", "py"],
+    "status": "deprecated",
+    "sunset_date": null,
+    "detect": {
+      "sdk": ["resend"],
+      "patterns": ["\\.audiences\\.", "\\.Audiences\\."]
+    },
+    "migration_url": "https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments",
+    "summary": "Resend's Audiences API is deprecated in favor of Segments. The endpoints still work but will be removed in the future (no date announced). Migrate the audiences.* calls to the Segments API.",
+    "source": "https://resend.com/docs/api-reference/audiences/create-audience"
   }
 ]

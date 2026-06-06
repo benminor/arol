@@ -1,6 +1,16 @@
 export type Severity = "high" | "medium" | "low";
 
 /**
+ * Lifecycle status of a deprecation:
+ * - "deprecated": announced but with no removal date (sunset_date is null).
+ * - "scheduled": has a future sunset_date — it will break on that day.
+ * - "retired": its sunset_date is in the past — it is already removed/broken.
+ *
+ * When an entry omits `status`, it is derived at runtime from sunset_date vs today.
+ */
+export type Status = "deprecated" | "scheduled" | "retired";
+
+/**
  * How a deprecation entry is triggered:
  * - "pattern" (default): flag ONLY when one of detect.patterns matches in a scanned
  *   source file. detect.sdk is a scope hint here, never a trigger.
@@ -27,9 +37,10 @@ export interface Detect {
   /**
    * Model family names matched ONLY when they appear inside a string literal.
    * Each becomes a regex of: an opening quote (' " or `), the escaped family
-   * name, an optional [A-Za-z0-9._-]* version/suffix, then the matching closing
-   * quote. So a quoted model id (single, double, or backtick) and its versioned
-   * snapshots match, while a bare occurrence in prose/JSX/markdown does not.
+   * name, an OPTIONAL ISO date snapshot suffix (-YYYY-MM-DD), then the matching
+   * closing quote. So a quoted model id and its dated snapshots match exactly
+   * ("gpt-4o" and "gpt-4o-2024-05-13"), but never a different model
+   * ("gpt-4o-mini") and never a bare occurrence in prose/JSX/markdown.
    */
   models: string[];
 }
@@ -43,14 +54,20 @@ export interface Deprecation {
   /** How the entry is triggered. Defaults to "pattern" when omitted in the dataset. */
   match: MatchMode;
   /**
+   * Explicit lifecycle status. Optional — when omitted it is derived at runtime
+   * from sunset_date (null → "deprecated", past → "retired", future → "scheduled").
+   * An explicit value here is always honored.
+   */
+  status?: Status;
+  /**
    * File extensions (without the dot, lowercased) this entry's patterns/models are
    * valid in — e.g. ["py"], ["js","ts","jsx","tsx","mjs"], or ["*"] to match any
    * scanned file. The inline scan only tests an entry against files whose extension
    * is listed here. Defaults to ["*"] when omitted.
    */
   applies_to: string[];
-  /** ISO date (YYYY-MM-DD) the API sunsets / loses support, or "" if there is no fixed date. */
-  sunset_date: string;
+  /** ISO date (YYYY-MM-DD) the API sunsets / loses support, or null when no date is announced. */
+  sunset_date: string | null;
   detect: Detect;
   /**
    * For match:"version" only — a simple range the declared SDK version must satisfy

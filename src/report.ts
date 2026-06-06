@@ -1,4 +1,5 @@
-import { Finding, ScanResult, Severity } from "./types";
+import { Deprecation, Finding, ScanResult, Severity } from "./types";
+import { daysUntil, effectiveStatus } from "./status";
 
 /** A set of string-styling functions. When disabled, every function is identity. */
 type Styler = ReturnType<typeof makeStyler>;
@@ -44,28 +45,34 @@ function severityPill(s: Styler, sev: Severity): string {
   return s.bgBlue(s.white(s.bold(label)));
 }
 
-/** Render the sunset date with a relative hint, or a note when there is no date. */
-function sunsetPhrase(s: Styler, sunsetDate: string, now: Date): string {
-  if (!sunsetDate) {
-    return s.gray("no fixed sunset date — already deprecated / unmaintained");
-  }
-  const parsed = new Date(`${sunsetDate}T00:00:00Z`);
-  if (Number.isNaN(parsed.getTime())) {
-    return s.gray(`sunsets ${sunsetDate}`);
-  }
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const days = Math.round((parsed.getTime() - now.getTime()) / msPerDay);
-  let rel: string;
-  if (days > 1) rel = `in ${days} days`;
-  else if (days === 1) rel = "in 1 day";
-  else if (days === 0) rel = "today";
-  else if (days === -1) rel = "1 day ago";
-  else rel = `${Math.abs(days)} days ago`;
+function dayCount(n: number): string {
+  return `${n} ${n === 1 ? "day" : "days"}`;
+}
 
-  const base = `sunsets ${sunsetDate}`;
-  const hint = days <= 0 ? ` (passed ${rel})` : ` (${rel})`;
-  // Past or imminent sunsets are the urgent ones.
-  return days <= 30 ? s.red(base + hint) : s.yellow(base + hint);
+/**
+ * Render the lifecycle line for a finding, keyed on its (effective) status.
+ * Date math runs ONLY for dated statuses, so a null sunset_date never produces NaN.
+ */
+function statusPhrase(s: Styler, d: Deprecation, now: Date): string {
+  const status = effectiveStatus(d, now);
+  const days = daysUntil(d.sunset_date, now);
+
+  // Dateless (or, defensively, a dated status with no parseable date).
+  if (status === "deprecated" || days === null) {
+    return s.yellow(
+      "deprecated · no removal date announced — migrate before it's pulled"
+    );
+  }
+
+  if (status === "retired") {
+    const ago = Math.abs(days);
+    return s.red(`retired ${d.sunset_date} (${dayCount(ago)} ago)`);
+  }
+
+  // scheduled
+  const rel = days <= 0 ? "today" : `in ${dayCount(days)}`;
+  const line = `sunsets ${d.sunset_date} (${rel})`;
+  return days <= 30 ? s.red(line) : s.yellow(line);
 }
 
 /** One line per source location: "path:line  →  matched text". */
@@ -111,9 +118,10 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
       SEVERITY_ORDER[a.deprecation.severity] -
       SEVERITY_ORDER[b.deprecation.severity];
     if (sevDiff !== 0) return sevDiff;
-    // Within a severity, soonest/earliest sunset first; undated last.
-    const da = a.deprecation.sunset_date || "9999-99-99";
-    const db = b.deprecation.sunset_date || "9999-99-99";
+    // Within a severity, soonest sunset first; dateless ("deprecated") entries
+    // sort last. A null/empty date maps to a far-future sentinel (no throwing).
+    const da = a.deprecation.sunset_date || "9999-12-31";
+    const db = b.deprecation.sunset_date || "9999-12-31";
     return da.localeCompare(db);
   });
 
@@ -135,7 +143,7 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
   if (findings.length === 0) {
     out.push(s.green(s.bold("✓ No upcoming deprecations detected in your stack.")));
     out.push("");
-    out.push(footer(s, findings));
+    out.push(footer(s, findings, now));
     return out.join("\n");
   }
 
@@ -166,7 +174,7 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
         d.severity
       )}`
     );
-    out.push(`  ${sunsetPhrase(s, d.sunset_date, now)}`);
+    out.push(`  ${statusPhrase(s, d, now)}`);
 
     if (d.summary) {
       out.push(`  ${s.dim(wrapText(d.summary, 76, "  ").trimStart())}`);
@@ -190,32 +198,38 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
     out.push("");
   }
 
-  out.push(footer(s, findings));
+  out.push(footer(s, findings, now));
   return out.join("\n");
 }
 
-/** Severity-aware closing CTA, visually separated from the findings above. */
-function footer(s: Styler, findings: Finding[]): string {
+/** Status-aware closing CTA, visually separated from the findings above. */
+function footer(s: Styler, findings: Finding[], now: Date): string {
   const sep = s.dim("─".repeat(60));
   const brand = "arol.ai";
 
-  let message: string;
-  if (findings.some((f) => f.deprecation.severity === "high")) {
-    // Prominent: high-severity items break on fixed dates.
-    message = s.bold(
-      s.red(
-        `⚠ These break on fixed dates. Get alerted before the next one hits you → ${brand}`
-      )
-    );
-  } else if (findings.length > 0) {
-    message =
-      s.dim("Get continuous deprecation alerts for your stack → ") +
-      s.cyan(s.bold(brand));
-  } else {
-    message =
+  if (findings.length === 0) {
+    const message =
       s.green("✓ Clean today — but new deprecations land constantly. Stay covered → ") +
       s.cyan(s.bold(brand));
+    return [sep, message].join("\n");
   }
+
+  // The urgent line only makes sense when something actually breaks on a date:
+  // a high-severity finding, or any dated (scheduled/retired) finding.
+  const hasHighOrDated = findings.some(
+    (f) =>
+      f.deprecation.severity === "high" ||
+      effectiveStatus(f.deprecation, now) !== "deprecated"
+  );
+
+  const message = hasHighOrDated
+    ? s.bold(
+        s.red(
+          `⚠ These break on fixed dates. Get alerted before the next one hits you → ${brand}`
+        )
+      )
+    : s.yellow("Deprecated APIs in your stack will be pulled eventually — stay ahead → ") +
+      s.cyan(s.bold(brand));
 
   return [sep, message].join("\n");
 }

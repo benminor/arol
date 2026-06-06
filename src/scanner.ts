@@ -83,13 +83,14 @@ function escapeRegex(s: string): string {
 
 /**
  * Build a regex that matches a model family ONLY inside a string literal:
- * an opening quote, the (escaped) family name, an optional version/suffix, then
- * the SAME closing quote. So a quoted model id (single, double, or backtick)
- * and its versioned snapshots match, but never a bare occurrence in
- * prose/JSX/markdown.
+ * an opening quote, the (escaped) family name, an OPTIONAL ISO date snapshot
+ * suffix (e.g. -2024-05-13), then the SAME closing quote. No arbitrary trailing
+ * characters are allowed, so "gpt-4o" matches "gpt-4o" and "gpt-4o-2024-05-13"
+ * but never a different model like "gpt-4o-mini" or "gpt-4o-realtime-preview".
+ * The model is still only found inside a quoted literal, never in bare prose.
  */
 function modelRegexSource(family: string): string {
-  return `(${QUOTE_CLASS})${escapeRegex(family)}[A-Za-z0-9._-]*\\1`;
+  return `(${QUOTE_CLASS})${escapeRegex(family)}(?:-\\d{4}-\\d{2}-\\d{2})?\\1`;
 }
 
 function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[] {
