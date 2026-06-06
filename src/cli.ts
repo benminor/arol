@@ -6,7 +6,7 @@ import { loadDeprecations } from "./data";
 import { scanRepo } from "./scanner";
 import { renderReport } from "./report";
 import { Severity } from "./types";
-import { daysUntil, effectiveStatus } from "./status";
+import { effectiveStatus, isActionable } from "./status";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -117,12 +117,9 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     Number.isFinite(parsedWithin) && parsedWithin >= 0
       ? parsedWithin
       : DEFAULT_WITHIN_DAYS;
-  const tripped = result.findings.some((f) => {
-    if (f.deprecation.severity === "high") return true;
-    if (effectiveStatus(f.deprecation, now) !== "scheduled") return false;
-    const days = daysUntil(f.deprecation.sunset_date, now);
-    return days !== null && days >= 0 && days <= within;
-  });
+  const tripped = result.findings.some((f) =>
+    isActionable(f.deprecation, now, within)
+  );
   if (tripped) process.exitCode = 1;
 }
 

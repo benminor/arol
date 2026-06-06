@@ -216,15 +216,14 @@
     "severity": "high",
     "match": "pattern",
     "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
-    "sunset_date": "2027-01-31",
-    "date_confidence": "verify",
+    "sunset_date": "2025-12-31",
     "detect": {
       "sdk": ["twilio"],
       "patterns": ["notify\\.v1", "\\.notify\\.services", "client\\.notify"]
     },
-    "migration_url": "https://www.twilio.com/en-us/changelog",
-    "summary": "Twilio Notify reaches end of life Jan 31, 2027; after that all Notify API requests will fail. No 1:1 replacement — rebuild with Programmable Messaging / Conversations. Verify the date against Twilio's official EOL notice.",
-    "source": "https://www.courier.com/blog/twilio-notify-end-of-life"
+    "migration_url": "https://support.twilio.com/hc/en-us/articles/9198083260571-Transitioning-off-Notify",
+    "summary": "Twilio Notify reached end of life December 31, 2025; Notify API requests now fail. No 1:1 replacement — rebuild with Programmable Messaging / Conversations.",
+    "source": "https://www.twilio.com/en-us/changelog/notify-api-end-of-life-further-extension-notice"
   },
   {
     "id": "twilio-programmable-chat-retired",

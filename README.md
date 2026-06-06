@@ -1,5 +1,7 @@
 # arol-ai
 
+[![tests](https://github.com/benminor/arol/actions/workflows/ci.yml/badge.svg)](https://github.com/benminor/arol/actions/workflows/ci.yml)
+
 Scan a local code repo for usage of third-party APIs/SDKs that have **upcoming deprecations**, and print a clean report.
 
 **Everything runs locally.** No network calls, no telemetry, no uploads, no auth. Your code never leaves your machine.

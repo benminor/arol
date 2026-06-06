@@ -40,3 +40,15 @@ export function effectiveStatus(d: Deprecation, now: Date): Status {
   if (t === null) return "deprecated";
   return t < startOfDayUTC(now) ? "retired" : "scheduled";
 }
+
+/**
+ * Whether a finding should fail the CI gate (non-zero exit): any high-severity
+ * finding, or a scheduled finding landing within `within` days. Dateless
+ * "deprecated" and non-imminent medium/low findings are warn-only.
+ */
+export function isActionable(d: Deprecation, now: Date, within: number): boolean {
+  if (d.severity === "high") return true;
+  if (effectiveStatus(d, now) !== "scheduled") return false;
+  const days = daysUntil(d.sunset_date, now);
+  return days !== null && days >= 0 && days <= within;
+}

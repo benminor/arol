@@ -1,0 +1,9 @@
+{
+  "name": "clean-fixture",
+  "private": true,
+  "dependencies": {
+    "openai": "^4.0.0",
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@anthropic-ai/sdk": "^0.30.0"
+  }
+}

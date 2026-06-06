@@ -89,7 +89,7 @@ function escapeRegex(s: string): string {
  * but never a different model like "gpt-4o-mini" or "gpt-4o-realtime-preview".
  * The model is still only found inside a quoted literal, never in bare prose.
  */
-function modelRegexSource(family: string): string {
+export function modelRegexSource(family: string): string {
   return `(${QUOTE_CLASS})${escapeRegex(family)}(?:-\\d{4}-\\d{2}-\\d{2})?\\1`;
 }
 

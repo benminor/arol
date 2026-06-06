@@ -1,0 +1,4 @@
+# arol dogfoods itself; these dirs hold deliberate deprecated strings as test
+# inputs, so exclude them from a self-scan.
+fixtures/
+test/
