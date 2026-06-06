@@ -134,6 +134,26 @@ npx arol-ai scan --within 7 # only fail when a sunset is within a week
 
 Colors are automatically disabled when output is not a TTY (e.g. piped to a file), or when `NO_COLOR` is set. Use `FORCE_COLOR=1` to force them on.
 
+## Run arol in CI
+
+Add a workflow file at `.github/workflows/arol.yml` in **your own repo**. GitHub Actions runs anything in `.github/workflows/` automatically — the filename is arbitrary — and this one triggers on every `push` and `pull_request`:
+
+```yaml
+name: arol deprecation scan
+on: [push, pull_request]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npx arol-ai scan
+```
+
+1. **Exit codes fail the build only on real breaks.** The scan exits non-zero only for high-severity or imminent dated deprecations, and stays warn-only (exit `0`) for `deprecated`/`medium` findings — so it won't block a PR over a deprecation that has no deadline.
+2. **Portable to any CI.** `npx arol-ai scan` is the one line that matters (GitLab CI, CircleCI, a cron job, etc.); only the YAML wrapper above is GitHub-specific.
+
 ## The dataset (`deprecations.json`)
 
 All detections are **data-driven** — the bundled dataset lives at
