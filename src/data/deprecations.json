@@ -203,7 +203,11 @@
     "sunset_date": "2024-05-15",
     "detect": {
       "sdk": ["stripe"],
-      "patterns": ["\\bstripe\\.sources\\.create", "\\bstripe\\.charges\\.create", "\\bstripe\\.Charge\\.create"]
+      "patterns": [
+        "\\bstripe\\.sources\\.create",
+        "\\bstripe\\.charges\\.create",
+        "\\bstripe\\.Charge\\.create"
+      ]
     },
     "migration_url": "https://docs.stripe.com/payments/older-apis",
     "summary": "The Sources API is deprecated (local payment methods stopped being accepted May 15, 2024) and the Charges API is legacy. Migrate to the PaymentMethods + PaymentIntents APIs.",
@@ -426,7 +430,7 @@
   {
     "id": "openai-2026-10-23-shutdown",
     "vendor": "OpenAI",
-    "title": "OpenAI models shut down October 23, 2026 (legacy GPT-3.5/4/4o, o1/o3-mini/o4-mini, gpt-image-1)",
+    "title": "OpenAI models shut down October 23, 2026 (legacy GPT-3.5/4/4o, GPT-4.1-nano, o1/o3-mini/o4-mini, gpt-image-1)",
     "severity": "high",
     "match": "pattern",
     "applies_to": ["*"],
@@ -435,20 +439,40 @@
       "sdk": ["openai"],
       "patterns": [],
       "models": [
+        "gpt-3.5-turbo",
         "gpt-3.5-turbo-0125",
+        "gpt-4",
         "gpt-4-0613",
+        "gpt-4-1106-preview",
         "gpt-4-turbo",
         "gpt-4.1-nano",
         "gpt-4o-2024-05-13",
         "gpt-image-1",
-        "o1-2024-12-17",
-        "o1-pro-2025-03-19",
-        "o3-mini-2025-01-31",
-        "o4-mini-2025-04-16"
+        "o1",
+        "o1-pro",
+        "o3-mini",
+        "o4-mini"
       ]
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
-    "summary": "These OpenAI models shut down in the API on October 23, 2026: legacy GPT-3.5/GPT-4/GPT-4-turbo and the original gpt-4o-2024-05-13 snapshot, the o1 / o1-pro / o3-mini / o4-mini reasoning snapshots, gpt-4.1-nano, and gpt-image-1. Dated snapshots are matched precisely so the still-current bare aliases (e.g. gpt-4o) are not flagged. Migrate to current flagship models.",
+    "summary": "These OpenAI models shut down in the API on October 23, 2026: GPT-3.5 Turbo, GPT-4, GPT-4 Turbo, GPT-4.1-nano, the gpt-4o-2024-05-13 snapshot, gpt-image-1, and the o1 / o1-pro / o3-mini / o4-mini reasoning models — bare aliases included, since OpenAI retires them alongside the dated snapshots. The still-current gpt-4o alias is intentionally NOT matched (only its retiring 2024-05-13 snapshot is). Migrate to the gpt-4.1 / gpt-5 family or gpt-image-1.5.",
     "source": "https://developers.openai.com/api/docs/deprecations"
+  },
+  {
+    "id": "openai-realtime-beta-removed",
+    "vendor": "OpenAI",
+    "title": "Realtime API beta interface removed",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
+    "sunset_date": "2026-05-12",
+    "detect": {
+      "sdk": ["openai"],
+      "patterns": ["\\bbeta\\.realtime\\b"],
+      "models": []
+    },
+    "migration_url": "https://platform.openai.com/docs/changelog",
+    "summary": "The Realtime API beta was removed from the API on May 12, 2026. Migrate from the client.beta.realtime interface to the released (GA) Realtime API.",
+    "source": "https://platform.openai.com/docs/changelog"
   }
 ]

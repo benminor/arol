@@ -34,7 +34,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "arol-ai": "^0.1.7",
+    "arol-ai": "^0.1.8",
     "commander": "^12.1.0",
     "fast-glob": "^3.3.2"
   },
