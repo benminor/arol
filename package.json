@@ -1,6 +1,6 @@
 {
   "name": "arol-ai",
-  "version": "0.1.10",
+  "version": "0.2.0",
   "description": "Scan a local repo for upcoming third-party API/SDK deprecations. Fully local — no network, no telemetry, your code never leaves the machine.",
   "keywords": [
     "deprecation",
