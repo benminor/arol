@@ -1,5 +1,6 @@
 import { Deprecation, Finding, ScanResult, Severity } from "./types";
 import { daysUntil, effectiveStatus } from "./status";
+import { effectiveSeverity, isTestOnly } from "./findings";
 
 /** A set of string-styling functions. When disabled, every function is identity. */
 type Styler = ReturnType<typeof makeStyler>;
@@ -115,8 +116,7 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
 
   const findings = [...result.findings].sort((a, b) => {
     const sevDiff =
-      SEVERITY_ORDER[a.deprecation.severity] -
-      SEVERITY_ORDER[b.deprecation.severity];
+      SEVERITY_ORDER[effectiveSeverity(a)] - SEVERITY_ORDER[effectiveSeverity(b)];
     if (sevDiff !== 0) return sevDiff;
     // Within a severity, soonest sunset first; dateless ("deprecated") entries
     // sort last. A null/empty date maps to a far-future sentinel (no throwing).
@@ -149,7 +149,7 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
 
   // Severity summary.
   const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
-  for (const f of findings) counts[f.deprecation.severity]++;
+  for (const f of findings) counts[effectiveSeverity(f)]++;
   const summaryParts = [
     s.red(`${counts.high} high`),
     s.yellow(`${counts.medium} medium`),
@@ -166,15 +166,29 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
   // Per finding.
   for (const finding of findings) {
     const d = finding.deprecation;
-    const sevColor = severityColor(s, d.severity);
+    const sev = effectiveSeverity(finding);
+    const sevColor = severityColor(s, sev);
 
     out.push(
       `${sevColor("●")} ${s.bold(d.vendor)} ${s.gray("·")} ${d.title} ${severityPill(
         s,
-        d.severity
+        sev
       )}`
     );
-    out.push(`  ${statusPhrase(s, d, now)}`);
+
+    // We matched a textual reference, not a confirmed call site, so frame it as
+    // a reference (never "this call will fail"). Wording tracks severity: test
+    // references are softened. The date fact comes from statusPhrase.
+    const status = statusPhrase(s, d, now);
+    if (finding.patternMatches.length > 0) {
+      const subject = (d.detect.models?.length ?? 0) > 0 ? "model" : "API";
+      const ref = isTestOnly(finding)
+        ? `test code references a deprecated ${subject}`
+        : `references a deprecated ${subject}`;
+      out.push(`  ${s.dim(ref)} ${s.gray("·")} ${status}`);
+    } else {
+      out.push(`  ${status}`);
+    }
 
     if (d.summary) {
       out.push(`  ${s.dim(wrapText(d.summary, 76, "  ").trimStart())}`);
@@ -218,7 +232,7 @@ function footer(s: Styler, findings: Finding[], now: Date): string {
   // a high-severity finding, or any dated (scheduled/retired) finding.
   const hasHighOrDated = findings.some(
     (f) =>
-      f.deprecation.severity === "high" ||
+      effectiveSeverity(f) === "high" ||
       effectiveStatus(f.deprecation, now) !== "deprecated"
   );
 

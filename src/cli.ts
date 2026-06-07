@@ -7,6 +7,7 @@ import { scanRepo } from "./scanner";
 import { renderReport } from "./report";
 import { Severity } from "./types";
 import { effectiveStatus, isActionable } from "./status";
+import { effectiveSeverity, isTestOnly } from "./findings";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -36,6 +37,7 @@ interface ScanCliOptions {
   data?: string;
   within?: string;
   ignore?: string[];
+  includeDeps?: boolean;
 }
 
 /** Commander collector so --ignore can be passed multiple times. */
@@ -73,6 +75,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
   const result = scanRepo(root, deprecations, {
     ignore: opts.ignore,
     dataPath: opts.data,
+    includeDeps: opts.includeDeps,
   });
 
   // One clock for the whole run, so rendering and the exit gate agree.
@@ -80,7 +83,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
 
   if (opts.json) {
     const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
-    for (const f of result.findings) counts[f.deprecation.severity]++;
+    for (const f of result.findings) counts[effectiveSeverity(f)]++;
     const payload = {
       scannedFiles: result.scannedFiles,
       manifestsScanned: result.manifestsScanned,
@@ -90,7 +93,11 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
         id: f.deprecation.id,
         vendor: f.deprecation.vendor,
         title: f.deprecation.title,
-        severity: f.deprecation.severity,
+        // Effective severity (down-ranked to "low" when all evidence is in
+        // test files); baseSeverity is the entry's declared level.
+        severity: effectiveSeverity(f),
+        baseSeverity: f.deprecation.severity,
+        testOnly: isTestOnly(f),
         match: f.deprecation.match,
         status: effectiveStatus(f.deprecation, now),
         sunset_date: f.deprecation.sunset_date,
@@ -117,8 +124,9 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     Number.isFinite(parsedWithin) && parsedWithin >= 0
       ? parsedWithin
       : DEFAULT_WITHIN_DAYS;
-  const tripped = result.findings.some((f) =>
-    isActionable(f.deprecation, now, within)
+  // Test-only findings are down-ranked and never fail the build.
+  const tripped = result.findings.some(
+    (f) => !isTestOnly(f) && isActionable(f.deprecation, now, within)
   );
   if (tripped) process.exitCode = 1;
 }
@@ -149,6 +157,10 @@ function main(argv: string[]): void {
       "skip files matching this glob (repeatable); also reads .arolignore",
       collectIgnore,
       []
+    )
+    .option(
+      "--include-deps",
+      "also scan dependency/build dirs (node_modules, .venv, dist, …) normally skipped"
     )
     .option(
       "--within <days>",

@@ -17,7 +17,7 @@
       ]
     },
     "migration_url": "https://platform.openai.com/docs/assistants/migration",
-    "summary": "The Assistants API beta is being removed on Aug 26, 2026; requests to /v1/assistants and /v1/threads will fail. Migrate to the Responses API + Conversations API.",
+    "summary": "The Assistants API beta is being removed on Aug 26, 2026. Migrate to the Responses API + Conversations API.",
     "source": "https://developers.openai.com/api/docs/deprecations"
   },
   {
@@ -39,7 +39,7 @@
       ]
     },
     "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
-    "summary": "Claude Sonnet 4 and Opus 4 retire June 15, 2026; calls to these model IDs will fail. Migrate to Sonnet 4.6 / Opus 4.6.",
+    "summary": "Claude Sonnet 4 and Opus 4 retire June 15, 2026. Migrate to Sonnet 4.6 / Opus 4.8.",
     "source": "https://platform.claude.com/docs/en/release-notes/overview"
   },
   {
@@ -63,7 +63,7 @@
       ]
     },
     "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
-    "summary": "These Claude model IDs are already retired and return errors. Migrate to current models (Haiku 4.5 / Sonnet 4.6 / Opus 4.6).",
+    "summary": "These Claude model IDs are already retired. Migrate to current models (Haiku 4.5 / Sonnet 4.6 / Opus 4.8).",
     "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations"
   },
   {
@@ -102,7 +102,7 @@
       ]
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
-    "summary": "Gemini 2.0 Flash and Flash-Lite shut down June 1, 2026 — already past, these calls now fail. Migrate to gemini-2.5-flash-lite or Gemini 3.x.",
+    "summary": "Gemini 2.0 Flash and Flash-Lite shut down June 1, 2026 (already past). Migrate to gemini-2.5-flash-lite or Gemini 3.x.",
     "source": "https://firebase.google.com/docs/ai-logic/models"
   },
   {
@@ -226,7 +226,7 @@
       "patterns": ["\\bnotify\\.v1\\b", "\\.notify\\.services\\b"]
     },
     "migration_url": "https://support.twilio.com/hc/en-us/articles/9198083260571-Transitioning-off-Notify",
-    "summary": "Twilio Notify reached end of life December 31, 2025; Notify API requests now fail. No 1:1 replacement — rebuild with Programmable Messaging / Conversations.",
+    "summary": "Twilio Notify reached end of life December 31, 2025. No 1:1 replacement — rebuild with Programmable Messaging / Conversations.",
     "source": "https://www.twilio.com/en-us/changelog/notify-api-end-of-life-further-extension-notice"
   },
   {
@@ -290,7 +290,7 @@
       "patterns": ["hapikey\\s*=", "hapiKey\\s*="]
     },
     "migration_url": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset",
-    "summary": "HubSpot deprecated legacy API keys (the hapikey query param) on Nov 30, 2022; requests using hapikey now fail. Migrate to Private App access tokens (Bearer auth). The eCommerce Bridge and Accounting Extension APIs were also sunset Dec 1, 2022.",
+    "summary": "HubSpot deprecated legacy API keys (the hapikey query param) on Nov 30, 2022. Migrate to Private App access tokens (Bearer auth). The eCommerce Bridge and Accounting Extension APIs were also sunset Dec 1, 2022.",
     "source": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset"
   },
   {
@@ -437,7 +437,7 @@
       ]
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
-    "summary": "These OpenAI model snapshots (audio/search/realtime previews, computer-use preview, and the deep research models) shut down in the API on July 23, 2026; pinned calls to these IDs will fail. Migrate to current flagship models.",
+    "summary": "These OpenAI model snapshots (audio/search/realtime previews, computer-use preview, and the deep research models) shut down in the API on July 23, 2026. Migrate to current flagship models.",
     "source": "https://developers.openai.com/api/docs/deprecations"
   },
   {

@@ -30,18 +30,32 @@ const SOURCE_EXTENSIONS = [
   "go",
 ];
 
-/** Directories never worth walking. */
-const IGNORED_DIRS = [
+/**
+ * Dependency & build directories skipped by default — a user can't fix a
+ * deprecation inside vendored/generated code. `--include-deps` (ScanOptions
+ * .includeDeps) opts back in. Centralized here so it's trivial to extend.
+ *
+ * Note: dot-prefixed entries (.venv, .next, .git) are also covered by fast-glob's
+ * `dot: false` default; they're listed here so a single flag re-enables them too.
+ */
+const DEPENDENCY_DIRS = [
+  // JS / TS
   "node_modules",
-  ".git",
+  ".next",
   "dist",
   "build",
-  ".next",
   "out",
   "coverage",
+  // Python
   ".venv",
   "venv",
+  "env",
+  "site-packages",
+  "__pycache__",
+  // Other ecosystems / VCS
   "vendor",
+  "target",
+  ".git",
 ];
 
 /**
@@ -63,6 +77,11 @@ export interface ScanOptions {
   ignore?: string[];
   /** Path to a custom dataset (--data) to also exclude from scanning. */
   dataPath?: string;
+  /**
+   * Scan into dependency/build dirs (and dot-dirs) too. Off by default — those
+   * hold code the user can't fix. Set by the --include-deps flag.
+   */
+  includeDeps?: boolean;
 }
 
 /** Skip files larger than this (bytes) to keep the scan fast. */
@@ -449,9 +468,11 @@ export function scanRepo(
 ): ScanResult {
   const absRoot = path.resolve(root);
 
-  // Assemble the ignore list: dirs + default file skips + .arolignore + --ignore.
+  // Assemble the ignore list. Dependency/build dirs are skipped unless the user
+  // opts in with --include-deps; doc/config skips, .arolignore, and --ignore
+  // always apply.
   const ignoreGlobs = [
-    ...IGNORED_DIRS.map((d) => `**/${d}/**`),
+    ...(options.includeDeps ? [] : DEPENDENCY_DIRS.map((d) => `**/${d}/**`)),
     ...DEFAULT_FILE_IGNORES,
     ...loadArolignore(absRoot),
     ...(options.ignore ?? []),
@@ -485,7 +506,9 @@ export function scanRepo(
       cwd: absRoot,
       absolute: false,
       onlyFiles: true,
-      dot: false,
+      // Dot-dirs (.venv, .next, .git) are skipped by default; --include-deps
+      // re-enables them alongside the dependency dirs above.
+      dot: options.includeDeps === true,
       followSymbolicLinks: false,
       suppressErrors: true,
       ignore: ignoreGlobs,
