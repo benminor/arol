@@ -10,8 +10,8 @@
     "detect": {
       "sdk": ["openai"],
       "patterns": [
-        "beta\\.assistants",
-        "beta\\.threads",
+        "\\bbeta\\.assistants\\b",
+        "\\bbeta\\.threads\\b",
         "/v1/assistants",
         "/v1/threads"
       ]
@@ -180,13 +180,13 @@
     "detect": {
       "sdk": ["@stripe/stripe-js", "stripe"],
       "patterns": [
-        "handleCardPayment",
-        "confirmPaymentIntent",
-        "handleFpxPayment",
-        "handleCardSetup",
-        "confirmSetupIntent",
-        "createSource",
-        "retrieveSource"
+        "\\bhandleCardPayment\\b",
+        "\\bconfirmPaymentIntent\\b",
+        "\\bhandleFpxPayment\\b",
+        "\\bhandleCardSetup\\b",
+        "\\bconfirmSetupIntent\\b",
+        "\\bstripe\\.createSource\\b",
+        "\\bstripe\\.retrieveSource\\b"
       ]
     },
     "migration_url": "https://docs.stripe.com/changelog/dahlia/2026-03-25/remove-legacy-stripejs-methods",
@@ -203,7 +203,7 @@
     "sunset_date": "2024-05-15",
     "detect": {
       "sdk": ["stripe"],
-      "patterns": ["\\.sources\\.create", "charges\\.create", "Charge\\.create"]
+      "patterns": ["\\bstripe\\.sources\\.create", "\\bstripe\\.charges\\.create", "\\bstripe\\.Charge\\.create"]
     },
     "migration_url": "https://docs.stripe.com/payments/older-apis",
     "summary": "The Sources API is deprecated (local payment methods stopped being accepted May 15, 2024) and the Charges API is legacy. Migrate to the PaymentMethods + PaymentIntents APIs.",
@@ -219,7 +219,7 @@
     "sunset_date": "2025-12-31",
     "detect": {
       "sdk": ["twilio"],
-      "patterns": ["notify\\.v1", "\\.notify\\.services", "client\\.notify"]
+      "patterns": ["\\bnotify\\.v1\\b", "\\.notify\\.services\\b"]
     },
     "migration_url": "https://support.twilio.com/hc/en-us/articles/9198083260571-Transitioning-off-Notify",
     "summary": "Twilio Notify reached end of life December 31, 2025; Notify API requests now fail. No 1:1 replacement — rebuild with Programmable Messaging / Conversations.",
@@ -235,10 +235,26 @@
     "sunset_date": "2022-07-25",
     "detect": {
       "sdk": ["twilio", "twilio-chat"],
-      "patterns": ["chat\\.v2", "IpMessaging", "twilio-chat"]
+      "patterns": ["\\bchat\\.v2\\b", "\\bIpMessaging\\b"]
     },
     "migration_url": "https://www.twilio.com/docs/conversations/migrating-chat-conversations",
     "summary": "The standalone Programmable Chat API was sunset July 25, 2022 (Programmable Chat in Flex ended June 1, 2026). Migrate to the Conversations API.",
+    "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice"
+  },
+  {
+    "id": "twilio-chat-package-eol",
+    "vendor": "Twilio",
+    "title": "twilio-chat SDK package (Programmable Chat)",
+    "severity": "high",
+    "match": "sdk",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
+    "sunset_date": "2022-07-25",
+    "detect": {
+      "sdk": ["twilio-chat"],
+      "patterns": []
+    },
+    "migration_url": "https://www.twilio.com/docs/conversations/migrating-chat-conversations",
+    "summary": "The twilio-chat npm package is the client SDK for the retired Programmable Chat API (sunset July 25, 2022). Remove the dependency and migrate to @twilio/conversations.",
     "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice"
   },
   {
@@ -284,10 +300,10 @@
     "detect": {
       "sdk": ["openai"],
       "patterns": [
-        "openai\\.ChatCompletion",
-        "openai\\.Completion\\.create",
-        "openai\\.Embedding\\.create",
-        "openai\\.Moderation\\.create"
+        "\\bopenai\\.ChatCompletion\\b",
+        "\\bopenai\\.Completion\\.create\\b",
+        "\\bopenai\\.Embedding\\.create\\b",
+        "\\bopenai\\.Moderation\\.create\\b"
       ]
     },
     "migration_url": "https://github.com/openai/openai-python/discussions/742",
@@ -307,9 +323,9 @@
       "patterns": [
         "from ['\"]ai/react['\"]",
         "from ['\"]ai/openai['\"]",
-        "experimental_streamText",
-        "experimental_generateText",
-        "StreamingTextResponse"
+        "\\bexperimental_streamText\\b",
+        "\\bexperimental_generateText\\b",
+        "\\bStreamingTextResponse\\b"
       ]
     },
     "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0",
@@ -330,8 +346,8 @@
         "from langchain\\.llms import",
         "from langchain\\.chat_models import",
         "from langchain\\.embeddings import",
-        "initialize_agent",
-        "LLMChain"
+        "\\binitialize_agent\\b",
+        "\\bLLMChain\\b"
       ]
     },
     "migration_url": "https://python.langchain.com/docs/versions/v0_2/",
@@ -349,10 +365,33 @@
     "sunset_date": null,
     "detect": {
       "sdk": ["resend"],
-      "patterns": ["\\.audiences\\.", "\\.Audiences\\."]
+      "patterns": ["\\bresend\\.audiences\\.", "\\bresend\\.Audiences\\."]
     },
     "migration_url": "https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments",
     "summary": "Resend's Audiences API is deprecated in favor of Segments. The endpoints still work but will be removed in the future (no date announced). Migrate the audiences.* calls to the Segments API.",
     "source": "https://resend.com/docs/api-reference/audiences/create-audience"
+  },
+  {
+    "id": "clerk-redirect-to-user-profile-component",
+    "vendor": "Clerk",
+    "title": "<RedirectToUserProfile /> control component deprecated",
+    "severity": "low",
+    "match": "pattern",
+    "applies_to": ["jsx", "tsx", "js", "ts"],
+    "sunset_date": null,
+    "status": "deprecated",
+    "detect": {
+      "sdk": [
+        "@clerk/nextjs",
+        "@clerk/clerk-react",
+        "@clerk/nuxt",
+        "@clerk/vue"
+      ],
+      "patterns": ["\\bRedirectToUserProfile\\b"],
+      "models": []
+    },
+    "migration_url": "https://clerk.com/docs/reference/objects/clerk#redirect-to-user-profile",
+    "summary": "Clerk's <RedirectToUserProfile /> control component is deprecated in favor of the redirectToUserProfile() method on the Clerk object. No removal date announced.",
+    "source": "https://clerk.com/docs/nextjs/reference/components/control/redirect-to-user-profile"
   }
 ]

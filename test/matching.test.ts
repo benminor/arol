@@ -88,6 +88,20 @@ describe("matching engine — regression per fixed false-positive class", () => 
     expect(fired(absent, "aws-sdk-js-v2-eol")).toBe(false);
   });
 
+  it("sdk match mode: the twilio-chat package fires its EOL entry", () => {
+    const present = scanTmp({
+      "package.json": JSON.stringify({ dependencies: { "twilio-chat": "^4.0.0" } }),
+    });
+    expect(fired(present, "twilio-chat-package-eol")).toBe(true);
+  });
+
+  it("stripe createSource fires on the stripe instance, not generic factories", () => {
+    const id = "stripe-removed-js-methods";
+    expect(fired(scanTmp({ "src/a.ts": "stripe.createSource(el, data);" }), id)).toBe(true);
+    expect(fired(scanTmp({ "src/a.ts": "stripe.retrieveSource({ id });" }), id)).toBe(true);
+    expect(fired(scanTmp({ "src/a.ts": "const s = pool.createSource(opts);" }), id)).toBe(false);
+  });
+
   it("evidence: a match reports the correct file path and line number", () => {
     const result = scanTmp({
       "src/deep/client.ts": '\n\nconst m = "text-davinci-003";\n',
