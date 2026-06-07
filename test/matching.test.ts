@@ -10,7 +10,8 @@ describe("matching engine — regression per fixed false-positive class", () => 
     expect(tsx.findings).toHaveLength(0);
 
     const py = scanTmp({
-      "legacy.py": "resp = openai.ChatCompletion.create()\n",
+      // openai-python-v0-syntax is import-gated; the file must import openai.
+      "legacy.py": "import openai\nresp = openai.ChatCompletion.create()\n",
     });
     expect(py.findings).toHaveLength(1);
     expect(fired(py, "openai-python-v0-syntax")).toBe(true);
@@ -97,9 +98,12 @@ describe("matching engine — regression per fixed false-positive class", () => 
 
   it("stripe createSource fires on the stripe instance, not generic factories", () => {
     const id = "stripe-removed-js-methods";
-    expect(fired(scanTmp({ "src/a.ts": "stripe.createSource(el, data);" }), id)).toBe(true);
-    expect(fired(scanTmp({ "src/a.ts": "stripe.retrieveSource({ id });" }), id)).toBe(true);
-    expect(fired(scanTmp({ "src/a.ts": "const s = pool.createSource(opts);" }), id)).toBe(false);
+    // stripe-removed-js-methods is import-gated; the file must import stripe.
+    const imp = 'import Stripe from "stripe";\n';
+    expect(fired(scanTmp({ "src/a.ts": imp + "stripe.createSource(el, data);" }), id)).toBe(true);
+    expect(fired(scanTmp({ "src/a.ts": imp + "stripe.retrieveSource({ id });" }), id)).toBe(true);
+    // Generic factory in an importing file still must not match (anchored to stripe.).
+    expect(fired(scanTmp({ "src/a.ts": imp + "const s = pool.createSource(opts);" }), id)).toBe(false);
   });
 
   it("evidence: a match reports the correct file path and line number", () => {

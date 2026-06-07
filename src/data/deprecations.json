@@ -8,7 +8,7 @@
     "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2026-08-26",
     "detect": {
-      "sdk": ["openai"],
+      "sdk": [],
       "patterns": [
         "\\bbeta\\.assistants\\b",
         "\\bbeta\\.threads\\b",
@@ -286,7 +286,7 @@
     "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
     "sunset_date": "2022-11-30",
     "detect": {
-      "sdk": ["@hubspot/api-client"],
+      "sdk": [],
       "patterns": ["hapikey\\s*=", "hapiKey\\s*="]
     },
     "migration_url": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset",
