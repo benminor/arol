@@ -474,5 +474,48 @@
     "migration_url": "https://platform.openai.com/docs/changelog",
     "summary": "The Realtime API beta was removed from the API on May 12, 2026. Migrate from the client.beta.realtime interface to the released (GA) Realtime API.",
     "source": "https://platform.openai.com/docs/changelog"
+  },
+  {
+    "id": "vercel-ai-sdk-v6-removed",
+    "vendor": "Vercel AI SDK",
+    "title": "AI SDK functions/classes removed in ai v6",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": ["*"],
+    "status": "deprecated",
+    "detect": {
+      "sdk": ["ai"],
+      "patterns": [
+        "convertToCoreMessages",
+        "Experimental_Agent",
+        "MockLanguageModelV2",
+        "MockEmbeddingModelV2",
+        "MockImageModelV2",
+        "MockProviderV2",
+        "MockSpeechModelV2",
+        "MockTranscriptionModelV2"
+      ],
+      "models": []
+    },
+    "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
+    "summary": "Removed in ai v6. convertToCoreMessages → convertToModelMessages; Experimental_Agent → ToolLoopAgent; the V2 mock classes in ai/test → their V3 versions. Code using these breaks when you upgrade to ai@6.",
+    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0"
+  },
+  {
+    "id": "vercel-ai-sdk-v6-generateobject-deprecated",
+    "vendor": "Vercel AI SDK",
+    "title": "generateObject / streamObject deprecated in ai v6",
+    "severity": "low",
+    "match": "pattern",
+    "applies_to": ["*"],
+    "status": "deprecated",
+    "detect": {
+      "sdk": ["ai"],
+      "patterns": ["generateObject", "streamObject"],
+      "models": []
+    },
+    "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
+    "summary": "Deprecated in ai v6 (still works; removal planned for a later version). Use generateText / streamText with an output setting (Output.object) instead.",
+    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0"
   }
 ]
