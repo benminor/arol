@@ -80,6 +80,9 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     return null;
   if ((match === "sdk" || match === "version") && sdk.length === 0) return null;
 
+  // INVARIANT: every array below is always defined here — detect.{sdk,patterns,
+  // models} default to [] and applies_to to ["*"] (above). scanner.ts depends on
+  // this and also guards with `?? []` as defense in depth. Don't drop the defaults.
   return {
     id: r.id,
     vendor: r.vendor,

@@ -97,7 +97,8 @@ function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[]
   return deprecations.map((deprecation) => {
     const regexes: RegExp[] = [];
     // Raw patterns — code identifiers, endpoints, params.
-    for (const pattern of deprecation.detect.patterns) {
+    // `?? []` guards against entries not produced by the loader (e.g. tests).
+    for (const pattern of deprecation.detect.patterns ?? []) {
       try {
         // Global so we can iterate every match and derive line numbers.
         regexes.push(new RegExp(pattern, "g"));
@@ -106,17 +107,17 @@ function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[]
       }
     }
     // Model names — only matched inside string literals (quote-anchored).
-    for (const family of deprecation.detect.models) {
+    for (const family of deprecation.detect.models ?? []) {
       try {
         regexes.push(new RegExp(modelRegexSource(family), "g"));
       } catch {
         // Defensive: a pathological family name must not crash the scan.
       }
     }
+    // Missing/empty applies_to means "applies everywhere" (["*"]), preserved here.
+    const declaredExts = deprecation.applies_to ?? [];
     const appliesTo = new Set(
-      (deprecation.applies_to.length > 0 ? deprecation.applies_to : ["*"]).map(
-        (e) => e.toLowerCase()
-      )
+      (declaredExts.length > 0 ? declaredExts : ["*"]).map((e) => e.toLowerCase())
     );
     return { deprecation, regexes, appliesTo };
   });
@@ -310,10 +311,11 @@ function matchManifests(
 ): Map<string, ManifestMatch[]> {
   const byId = new Map<string, ManifestMatch[]>();
   for (const deprecation of deprecations) {
-    if (deprecation.detect.sdk.length === 0) continue;
+    const sdks = deprecation.detect.sdk ?? [];
+    if (sdks.length === 0) continue;
     const matches: ManifestMatch[] = [];
     const seen = new Set<string>();
-    for (const sdk of deprecation.detect.sdk) {
+    for (const sdk of sdks) {
       for (const ref of refs) {
         if (!nameMatches(sdk, ref.name)) continue;
         const key = `${ref.source}::${ref.name}`;
