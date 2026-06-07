@@ -317,23 +317,36 @@
   {
     "id": "vercel-ai-sdk-v5-removed",
     "vendor": "Vercel (AI SDK)",
-    "title": "AI SDK v4→v5/v6 removed APIs",
+    "title": "AI SDK APIs removed in v5",
     "severity": "medium",
     "match": "pattern",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
-    "sunset_date": "2025-07-31",
+    "applies_to": ["*"],
+    "status": "deprecated",
     "detect": {
       "sdk": ["ai"],
       "patterns": [
         "from ['\"]ai/react['\"]",
-        "from ['\"]ai/openai['\"]",
+        "from ['\"]ai/rsc['\"]",
+        "from ['\"]@ai-sdk/ui-utils['\"]",
+        "\\bStreamData\\b",
+        "\\buseAssistant\\b",
+        "\\bToolExecutionError\\b",
+        "\\bLangChainAdapter\\b",
+        "\\bLlamaIndexAdapter\\b",
+        "\\bStreamingTextResponse\\b",
+        "\\bcreateDataStream\\b",
+        "\\bcreateDataStreamResponse\\b",
+        "\\bformatDataStreamPart\\b",
+        "\\bprocessDataStream\\b",
+        "\\bDataStreamToSSETransformStream\\b",
+        "\\btoDataStreamResponse\\b",
+        "\\bpipeDataStreamToResponse\\b",
         "\\bexperimental_streamText\\b",
-        "\\bexperimental_generateText\\b",
-        "\\bStreamingTextResponse\\b"
+        "\\bexperimental_generateText\\b"
       ]
     },
     "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0",
-    "summary": "AI SDK v5 (Jul 2025) removed deprecated APIs: 'ai/react' → '@ai-sdk/react', experimental_streamText → streamText, StreamingTextResponse removed, useChat maxSteps removed. v6 moved provider imports ('ai/openai' → '@ai-sdk/openai').",
+    "summary": "Removed in AI SDK v5. Import paths: 'ai/react' → '@ai-sdk/react', 'ai/rsc' → '@ai-sdk/rsc', '@ai-sdk/ui-utils' folded into 'ai'. Removed APIs: StreamData, useAssistant, ToolExecutionError; the data-stream helpers (createDataStream, createDataStreamResponse, formatDataStreamPart, processDataStream, DataStreamToSSETransformStream); and the result methods toDataStreamResponse / pipeDataStreamToResponse (now toUIMessageStreamResponse / pipeUIMessageStreamToResponse). LangChainAdapter / LlamaIndexAdapter moved to @ai-sdk/langchain and @ai-sdk/llamaindex. StreamingTextResponse and the experimental_streamText/generateText prefixes predate v5.",
     "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0"
   },
   {
