@@ -9,6 +9,12 @@ import {
   ScanResult,
 } from "./types";
 import { collectManifestDeps, nameMatches, PkgRef } from "./manifests";
+import {
+  extractImports,
+  importsSatisfySdk,
+  isGateableLang,
+  NO_IMPORTS,
+} from "./imports";
 
 /** Source file extensions that get the inline regex scan. */
 const SOURCE_EXTENSIONS = [
@@ -68,9 +74,23 @@ const MAX_MATCHES_PER_PATTERN_PER_FILE = 50;
 /** A deprecation with its patterns pre-compiled once. */
 interface CompiledDeprecation {
   deprecation: Deprecation;
-  regexes: RegExp[];
+  /** Regexes from detect.patterns — subject to import-gating. */
+  patternRegexes: RegExp[];
+  /** Regexes from detect.models — NEVER gated (model strings run regardless). */
+  modelRegexes: RegExp[];
   /** Lowercased extensions this entry applies to; `*` means any. */
   appliesTo: Set<string>;
+  /**
+   * detect.sdk — the import gate for this entry's patternRegexes. Empty means
+   * "ungated" (patterns run everywhere, as before import-gating).
+   */
+  sdkGate: string[];
+}
+
+/** The regexes selected to run against one file for one deprecation. */
+interface RegexRun {
+  deprecation: Deprecation;
+  regexes: RegExp[];
 }
 
 /** Any of the three string-literal quote characters. */
@@ -95,21 +115,22 @@ export function modelRegexSource(family: string): string {
 
 function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[] {
   return deprecations.map((deprecation) => {
-    const regexes: RegExp[] = [];
+    const patternRegexes: RegExp[] = [];
     // Raw patterns — code identifiers, endpoints, params.
     // `?? []` guards against entries not produced by the loader (e.g. tests).
     for (const pattern of deprecation.detect.patterns ?? []) {
       try {
         // Global so we can iterate every match and derive line numbers.
-        regexes.push(new RegExp(pattern, "g"));
+        patternRegexes.push(new RegExp(pattern, "g"));
       } catch {
         // A malformed pattern in the dataset must not crash the scan.
       }
     }
     // Model names — only matched inside string literals (quote-anchored).
+    const modelRegexes: RegExp[] = [];
     for (const family of deprecation.detect.models ?? []) {
       try {
-        regexes.push(new RegExp(modelRegexSource(family), "g"));
+        modelRegexes.push(new RegExp(modelRegexSource(family), "g"));
       } catch {
         // Defensive: a pathological family name must not crash the scan.
       }
@@ -119,7 +140,13 @@ function compileDeprecations(deprecations: Deprecation[]): CompiledDeprecation[]
     const appliesTo = new Set(
       (declaredExts.length > 0 ? declaredExts : ["*"]).map((e) => e.toLowerCase())
     );
-    return { deprecation, regexes, appliesTo };
+    return {
+      deprecation,
+      patternRegexes,
+      modelRegexes,
+      appliesTo,
+      sdkGate: deprecation.detect.sdk ?? [],
+    };
   });
 }
 
@@ -260,16 +287,16 @@ function lineNumberAt(lineStarts: number[], offset: number): number {
   return ans + 1;
 }
 
-/** Match every compiled deprecation against one file's contents. */
+/** Match the selected regexes for each deprecation against one file's contents. */
 function scanContent(
   content: string,
   relPath: string,
-  compiled: CompiledDeprecation[],
+  runs: RegexRun[],
   sink: Map<string, PatternMatch[]>
 ): void {
   const lineStarts = computeLineStarts(content);
 
-  for (const { deprecation, regexes } of compiled) {
+  for (const { deprecation, regexes } of runs) {
     if (regexes.length === 0) continue;
     let recorded = sink.get(deprecation.id);
 
@@ -494,7 +521,28 @@ export function scanRepo(
     const cfg = commentConfig(ext);
     const scanText = cfg ? stripComments(content, cfg) : content;
 
-    scanContent(scanText, rel, applicable, patternSink);
+    // Import-gating: parse imports ONCE per file, reused across all entries.
+    // Only needed when some applicable entry actually gates (non-empty sdk) and
+    // the language supports gating (Go/unknown fall back to ungated). TODO: gate Go.
+    const gateable = isGateableLang(ext);
+    const needImports = gateable && applicable.some((c) => c.sdkGate.length > 0);
+    const imports = needImports ? extractImports(scanText, ext) : NO_IMPORTS;
+
+    // For each entry: model regexes always run; pattern regexes run only when the
+    // gate is open (empty sdk → always; non-gateable lang → always; else the file
+    // must import a matching package).
+    const runs: RegexRun[] = [];
+    for (const c of applicable) {
+      const gateOpen =
+        c.sdkGate.length === 0 ||
+        !gateable ||
+        importsSatisfySdk(c.sdkGate, imports);
+      const regexes = gateOpen
+        ? [...c.modelRegexes, ...c.patternRegexes]
+        : c.modelRegexes;
+      if (regexes.length > 0) runs.push({ deprecation: c.deprecation, regexes });
+    }
+    if (runs.length > 0) scanContent(scanText, rel, runs, patternSink);
   }
 
   // 3. Build findings — one per deprecation, evaluated per its match mode.

@@ -46,6 +46,9 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
   if (!SEVERITIES.includes(r.severity as Severity)) return null;
 
   const detect = r.detect as Record<string, unknown> | undefined;
+  // detect.sdk is now FUNCTIONAL for match:"pattern" entries (import-gating, see
+  // imports.ts): a non-empty sdk means the entry's patterns only run in files that
+  // import a matching package. Empty sdk = ungated (patterns run everywhere).
   const sdk = detect && isStringArray(detect.sdk) ? detect.sdk : [];
   const patterns =
     detect && isStringArray(detect.patterns) ? detect.patterns : [];
