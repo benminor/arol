@@ -1,6 +1,7 @@
 import { Deprecation, Finding, ScanResult, Severity } from "./types";
 import { daysUntil, effectiveStatus } from "./status";
 import { effectiveSeverity, isTestOnly } from "./findings";
+import { SOURCE_EXTENSIONS } from "./scanner";
 
 /** A set of string-styling functions. When disabled, every function is identity. */
 type Styler = ReturnType<typeof makeStyler>;
@@ -106,6 +107,8 @@ export interface RenderOptions {
   color: boolean;
   /** Injected for deterministic testing; defaults to the current time. */
   now?: Date;
+  /** The path that was scanned, echoed in the no-scannable-files warning. */
+  path?: string;
 }
 
 /** Render the full human-readable terminal report. */
@@ -141,6 +144,26 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
   out.push("");
 
   if (findings.length === 0) {
+    // Scanning nothing is not a clean result. A run that walked zero source
+    // files is almost always a mis-pointed path, so warn instead of giving the
+    // green all-clear (which would otherwise mask a misconfigured scan).
+    if (result.scannedFiles === 0) {
+      out.push(
+        s.bold(s.yellow("⚠ ")) +
+          s.bold("No scannable files found at ") +
+          s.cyan(opts.path ?? ".")
+      );
+      out.push("");
+      out.push(
+        s.gray(
+          `arol scans these file types: ${SOURCE_EXTENSIONS.map((e) => `.${e}`).join(", ")}`
+        )
+      );
+      out.push(s.gray("Double-check that the path is correct."));
+      out.push("");
+      return out.join("\n");
+    }
+
     out.push(s.green(s.bold("✓ No upcoming deprecations detected in your stack.")));
     out.push("");
     out.push(footer(s, findings, now));

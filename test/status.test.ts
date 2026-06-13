@@ -66,6 +66,30 @@ describe("status rendering", () => {
   });
 });
 
+describe("zero scannable files", () => {
+  it("warns instead of giving the green all-clear", () => {
+    const result: ScanResult = {
+      scannedFiles: 0,
+      manifestsScanned: [],
+      findings: [],
+    };
+    const out = renderReport(result, {
+      color: false,
+      now: NOW,
+      path: "/tmp/empty-dir",
+    });
+
+    // The no-scannable-files warning is shown...
+    expect(out).toContain("⚠");
+    expect(out).toContain("No scannable files found");
+    expect(out).toContain("/tmp/empty-dir");
+    expect(out).toContain(".ts"); // lists the extensions arol scans
+    // ...and the clean-scan success message is NOT.
+    expect(out).not.toContain("No upcoming deprecations detected");
+    expect(out).not.toContain("✓");
+  });
+});
+
 describe("exit gate (isActionable)", () => {
   it("any high-severity finding is actionable (exit non-zero)", () => {
     expect(isActionable(mkDep({ severity: "high", sunset_date: null }), NOW, 30)).toBe(true);

@@ -17,7 +17,7 @@ import {
 } from "./imports";
 
 /** Source file extensions that get the inline regex scan. */
-const SOURCE_EXTENSIONS = [
+export const SOURCE_EXTENSIONS = [
   "js",
   "mjs",
   "cjs",

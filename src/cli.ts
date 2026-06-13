@@ -112,8 +112,17 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     const report = renderReport(result, {
       color: shouldUseColor(opts.color),
       now,
+      path: root,
     });
     process.stdout.write(report + "\n");
+  }
+
+  // A scan that walked zero source files is a misconfiguration, not a clean
+  // pass. Exit with a distinct non-zero code (vs. 1 for real findings) so CI
+  // fails loudly on a mis-pointed or empty target instead of going green.
+  if (result.scannedFiles === 0 && result.findings.length === 0) {
+    process.exitCode = 2;
+    return;
   }
 
   // CI gate: exit non-zero only for an actionable finding — any "high"-severity
