@@ -71,21 +71,22 @@ Detection keys on **actual usage, not mere SDK presence.** Each dataset entry de
 
 ### `match: "pattern"` — the default
 
-Flags **only** when your code actually references the deprecated API in a scanned **source file**. `detect.sdk` is just a scope hint here and is **never** a trigger on its own. A `pattern` entry carries two kinds of usage signal:
+Flags **only** when your code actually references the deprecated API in a scanned **source file**. Manifest presence alone never triggers a `pattern` entry. A `pattern` entry carries two kinds of usage signal:
 
-- **`detect.patterns`** — raw regexes for code identifiers, endpoints, and params (e.g. `beta\.assistants`, `/v1/threads`, `charges\.create`, `hapikey\s*=`). Matched anywhere in the file.
-- **`detect.models`** — model family names matched **only inside a string literal**. Each becomes: an opening quote (`'` `"` or `` ` ``), the family name, an **optional ISO date snapshot** (`-YYYY-MM-DD`), then the matching closing quote — no arbitrary trailing characters. So `"gpt-4o"`, `'gpt-4o'`, `` `gpt-4o` ``, and `"gpt-4o-2024-05-13"` match, but a *different* model like `"gpt-4o-mini"` or `"gpt-4o-realtime-preview"` does **not** (and neither does a bare mention in prose, JSX, or a comment).
+- **`detect.patterns`** — raw regexes for code identifiers, endpoints, and params (e.g. `beta\.assistants`, `/v1/threads`, `charges\.create`, `hapikey\s*=`). Matched in the file **subject to import-gating** (below).
+- **`detect.models`** — model family names matched **only inside a string literal**. Each becomes: an opening quote (`'` `"` or `` ` ``), the family name, an **optional ISO date snapshot** (`-YYYY-MM-DD`), then the matching closing quote — no arbitrary trailing characters. So `"gpt-4o"`, `'gpt-4o'`, `` `gpt-4o` ``, and `"gpt-4o-2024-05-13"` match, but a *different* model like `"gpt-4o-mini"` or `"gpt-4o-realtime-preview"` does **not** (and neither does a bare mention in prose, JSX, or a comment). Model matches are **not** import-gated — a quoted model id counts wherever it appears.
 
 This split is what keeps a marketing page that mentions *"GPT-4o, GPT-4.1, and o4-mini"* from being reported as deprecated usage: those names aren't quoted string literals, so `detect.models` ignores them. Only something like `model: "o4-mini"` counts.
 
-Two more layers keep matches context-aware:
+Three more layers keep matches context-aware:
 
+- **Import-gating (`detect.sdk`).** When `detect.sdk` is non-empty, `detect.patterns` only run in files that **import** a matching package (JS/TS: `import`/`require`; Python: `import`/`from`). An empty `detect.sdk` means ungated — patterns run in every applicable file (useful for distinctive REST paths / query params with no SDK). Model matches always run regardless. Go files are not import-gated yet (patterns behave as ungated there). Subpaths count: `sdk: ["ai"]` matches `ai` and `ai/test`, but not `aimee` or `ai-utils`.
 - **Language scoping (`applies_to`).** Each entry lists the file extensions its signals are valid in (e.g. `["py"]`, `["js","ts","jsx","tsx","mjs"]`, or `["*"]` for model strings). An entry is only tested against files with a matching extension, so a Python-only pattern like `openai.ChatCompletion` never fires in a `.tsx` file. Defaults to `["*"]` when omitted.
 - **Comment stripping.** Before matching, comments are blanked out per language — `//`, `/* */`, JSX `{/* */}`, and `#` (Python). Stripping is string-aware: a marker inside a string literal (e.g. the `//` in `"https://…"`) is **not** treated as a comment, and offsets are preserved so reported line numbers stay exact. A commented-out `model: "gpt-4o"` is ignored; the real call on the next line is not.
 
 Each hit records the **file path, line number, and matched text**, and one deprecation aggregates **all** of its matched locations into a single finding.
 
-> Having the `openai` package in `requirements.txt` does **not** flag the Assistants API deprecation. Your code has to actually use `beta.assistants` / a deprecated model id (etc.), in a file of the right language, outside comments.
+> Having the `openai` package in `requirements.txt` does **not** flag a `pattern` entry. Your code has to actually use the deprecated surface (and, for gated pattern entries, import the matching package) in a file of the right language, outside comments.
 
 **Files scanned / skipped**
 
@@ -175,7 +176,7 @@ The dataset is either a bare array of entries, or a `{ "deprecations": [ ... ] }
   "applies_to": ["py","js","ts","jsx","tsx","mjs"], // extensions to test; ["*"] = any
   "sunset_date": "2026-08-26",      // ISO YYYY-MM-DD, or null if no date announced
   "detect": {
-    "sdk": ["openai"],              // scope hint for "pattern"; the trigger for "sdk"/"version"
+    "sdk": ["openai"],              // import gate for patterns (empty = ungated)
     "patterns": [                   // raw regexes: identifiers, endpoints, params
       "beta\\.assistants",
       "beta\\.threads",
@@ -274,7 +275,7 @@ is warn-only (exit 0) unless it's high-severity:
 | `applies_to` | string[] | – | File extensions (no dot) the entry's patterns/models are tested against, e.g. `["py"]` or `["js","ts","jsx","tsx","mjs"]`. Use `["*"]` for any file (model strings). **Defaults to `["*"]`** when omitted. |
 | `version_range` | string | – | For `match: "version"` only — e.g. `"<3.0.0"`, `">=1.2.0"`, `"=2.1.0"`. If omitted, a `version` entry behaves like `"sdk"`. |
 | `sunset_date` | string \| null | – | ISO `YYYY-MM-DD`, or **`null`** when no removal date is announced. Derived status: `null` → `deprecated`, future → `scheduled` (`"sunsets {date} (in N days)"`), past → `retired` (`"retired {date} (N days ago)"`). A dateless entry renders *"deprecated · no removal date announced"* and never runs date math. |
-| `detect.sdk` | string[] | – | Manifest dependency/module names. For `match: "pattern"` this is only a **scope hint and never triggers** a finding; for `sdk`/`version` it is the trigger. |
+| `detect.sdk` | string[] | – | Package / module names. For `match: "pattern"`: **import gate** for `detect.patterns` — patterns only run in files that import a matching package (JS/TS/Python); empty = ungated. Model matches are never gated. For `sdk`/`version`: the **manifest trigger**. |
 | `detect.patterns` | string[] | – | **JSON-escaped** regex strings (so `\d` becomes `\\d`). For code identifiers, endpoints, and params. Matched anywhere in a source file; invalid regexes are skipped safely. |
 | `detect.models` | string[] | – | Model family names matched **only inside string literals** (quote-anchored; allows an optional trailing ISO date snapshot `-YYYY-MM-DD`, nothing else). Use this for model ids so prose/JSX mentions don't false-positive and a family never matches a different model. Write the raw name (e.g. `gpt-4.5-preview`) — escaping is automatic. List dated/revisioned snapshots explicitly if they use a non-ISO suffix (e.g. Anthropic's `-20241022`). |
 | `migration_url` | string | – | Link shown in the report. |

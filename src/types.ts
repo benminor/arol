@@ -12,8 +12,9 @@ export type Status = "deprecated" | "scheduled" | "retired";
 
 /**
  * How a deprecation entry is triggered:
- * - "pattern" (default): flag ONLY when one of detect.patterns matches in a scanned
- *   source file. detect.sdk is a scope hint here, never a trigger.
+ * - "pattern" (default): flag ONLY when detect.patterns or detect.models match in a
+ *   scanned source file. Manifest presence alone never triggers. When detect.sdk is
+ *   non-empty, patterns are import-gated (JS/TS/Python); models are never gated.
  * - "sdk": flag when a detect.sdk package appears in a manifest, regardless of code.
  * - "version": flag when a detect.sdk package appears in a manifest AND its declared
  *   version satisfies version_range (when one is given).
@@ -23,15 +24,18 @@ export type MatchMode = "pattern" | "sdk" | "version";
 /** What signals indicate a deprecation is in use. */
 export interface Detect {
   /**
-   * Dependency / module names to look for in manifests (package.json,
-   * requirements.txt, go.mod). For match:"pattern" entries this is only a scope
-   * hint and is NOT a trigger; it is the trigger for match:"sdk"/"version".
+   * Package / module names. For match:"pattern": import gate for `patterns` —
+   * patterns only run in files that import a matching package (JS/TS/Python);
+   * empty means ungated. Model matches are never import-gated. For
+   * match:"sdk"/"version": the manifest trigger (package.json, requirements.txt,
+   * go.mod).
    */
   sdk: string[];
   /**
    * Raw regex strings matched against source file contents. Use for code
    * identifiers, endpoint paths, and query params (method names, route
    * fragments, auth params) — anything that is not a bare model id.
+   * Subject to import-gating when detect.sdk is non-empty.
    */
   patterns: string[];
   /**
@@ -41,6 +45,7 @@ export interface Detect {
    * closing quote. So a quoted model id and its dated snapshots match exactly
    * ("gpt-4o" and "gpt-4o-2024-05-13"), but never a different model
    * ("gpt-4o-mini") and never a bare occurrence in prose/JSX/markdown.
+   * Not subject to import-gating.
    */
   models: string[];
 }
