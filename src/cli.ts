@@ -38,6 +38,7 @@ interface ScanCliOptions {
   within?: string;
   ignore?: string[];
   includeDeps?: boolean;
+  failOnRetired?: boolean;
 }
 
 /** Commander collector so --ignore can be passed multiple times. */
@@ -125,17 +126,20 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     return;
   }
 
-  // CI gate: exit non-zero only for an actionable finding — any "high"-severity
-  // finding, or a "scheduled" finding landing within `--within` days (default 30).
-  // Dateless "deprecated" and non-imminent medium/low findings are warn-only.
+  // CI gate: exit non-zero only for an actionable finding — high (non-retired),
+  // or scheduled within `--within` days (default 30). Retired high is warn-only
+  // unless `--fail-on-retired`. Dateless medium/low stay warn-only.
   const parsedWithin = opts.within !== undefined ? parseInt(opts.within, 10) : NaN;
   const within =
     Number.isFinite(parsedWithin) && parsedWithin >= 0
       ? parsedWithin
       : DEFAULT_WITHIN_DAYS;
+  const failOnRetired = opts.failOnRetired === true;
   // Test-only findings are down-ranked and never fail the build.
   const tripped = result.findings.some(
-    (f) => !isTestOnly(f) && isActionable(f.deprecation, now, within)
+    (f) =>
+      !isTestOnly(f) &&
+      isActionable(f.deprecation, now, within, { failOnRetired })
   );
   if (tripped) process.exitCode = 1;
 }
@@ -173,7 +177,11 @@ function main(argv: string[]): void {
     )
     .option(
       "--within <days>",
-      "fail (exit 1) on scheduled sunsets landing within this many days (default 30); high-severity findings always fail"
+      "fail (exit 1) on scheduled sunsets landing within this many days (default 30); high non-retired findings always fail"
+    )
+    .option(
+      "--fail-on-retired",
+      "also fail (exit 1) on high-severity findings whose sunset date is already past"
     )
     .action((pathArg: string | undefined, options: ScanCliOptions) => {
       runScan(pathArg, options);

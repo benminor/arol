@@ -91,14 +91,29 @@ describe("zero scannable files", () => {
 });
 
 describe("exit gate (isActionable)", () => {
-  it("any high-severity finding is actionable (exit non-zero)", () => {
+  it("high scheduled / dateless findings are actionable", () => {
     expect(isActionable(mkDep({ severity: "high", sunset_date: null }), NOW, 30)).toBe(true);
-    expect(isActionable(mkDep({ severity: "high", sunset_date: "2020-01-01" }), NOW, 30)).toBe(true);
+    expect(isActionable(mkDep({ severity: "high", sunset_date: isoFromNow(60) }), NOW, 30)).toBe(
+      true
+    );
+  });
+
+  it("retired high is warn-only by default, actionable with failOnRetired", () => {
+    const retired = mkDep({ severity: "high", sunset_date: "2020-01-01" });
+    expect(isActionable(retired, NOW, 30)).toBe(false);
+    expect(isActionable(retired, NOW, 30, { failOnRetired: true })).toBe(true);
   });
 
   it("medium dateless / retired findings are warn-only (exit 0)", () => {
     expect(isActionable(mkDep({ severity: "medium", sunset_date: null }), NOW, 30)).toBe(false);
-    expect(isActionable(mkDep({ severity: "medium", sunset_date: "2020-01-01" }), NOW, 30)).toBe(false);
+    expect(isActionable(mkDep({ severity: "medium", sunset_date: "2020-01-01" }), NOW, 30)).toBe(
+      false
+    );
+    expect(
+      isActionable(mkDep({ severity: "medium", sunset_date: "2020-01-01" }), NOW, 30, {
+        failOnRetired: true,
+      })
+    ).toBe(false);
   });
 
   it("a medium scheduled finding is actionable only within the window", () => {

@@ -41,14 +41,36 @@ export function effectiveStatus(d: Deprecation, now: Date): Status {
   return t < startOfDayUTC(now) ? "retired" : "scheduled";
 }
 
+/** Options for the CI actionability gate. */
+export interface ActionableOptions {
+  /**
+   * When true, high-severity findings whose status is "retired" also fail the
+   * gate. Off by default so already-past sunsets are warn-only unless opted in.
+   */
+  failOnRetired?: boolean;
+}
+
 /**
- * Whether a finding should fail the CI gate (non-zero exit): any high-severity
- * finding, or a scheduled finding landing within `within` days. Dateless
- * "deprecated" and non-imminent medium/low findings are warn-only.
+ * Whether a finding should fail the CI gate (non-zero exit):
+ * - high severity that is not retired (scheduled or dateless deprecated)
+ * - high severity that is retired, only when `failOnRetired` is set
+ * - any scheduled finding (any severity) landing within `within` days
+ *
+ * Dateless medium/low, retired medium/low, and non-imminent medium/low are
+ * warn-only. Retired high is warn-only by default (use --fail-on-retired).
  */
-export function isActionable(d: Deprecation, now: Date, within: number): boolean {
-  if (d.severity === "high") return true;
-  if (effectiveStatus(d, now) !== "scheduled") return false;
+export function isActionable(
+  d: Deprecation,
+  now: Date,
+  within: number,
+  opts: ActionableOptions = {}
+): boolean {
+  const status = effectiveStatus(d, now);
+  if (d.severity === "high") {
+    if (status === "retired") return opts.failOnRetired === true;
+    return true;
+  }
+  if (status !== "scheduled") return false;
   const days = daysUntil(d.sunset_date, now);
   return days !== null && days >= 0 && days <= within;
 }

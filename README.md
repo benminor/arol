@@ -121,18 +121,20 @@ arol-ai scan [path] [options]
 | `--data <file>` | Use a custom `deprecations.json` instead of the bundled one |
 | `--ignore <glob>` | Skip files matching this glob; repeatable. Combined with `.arolignore`. e.g. `--ignore 'docs/**' --ignore '**/*.gen.ts'` |
 | `--within <days>` | Window (default `30`) for the CI gate's "scheduled soon" check. See exit codes. |
+| `--fail-on-retired` | Also fail on **high**-severity findings whose sunset date is already past. Off by default. |
 | `-v, --version` | Print the version |
 | `-h, --help` | Show help |
 
 `scan` is the default command, so `arol-ai ./repo` works too.
 
-**Exit codes:** `0` success · `1` an actionable finding · `2` bad path or dataset error.
+**Exit codes:** `0` success · `1` an actionable finding · `2` bad path, dataset error, or zero scannable files.
 
-A finding is **actionable** (exit `1`) when it is **high**-severity, or **scheduled** to sunset within `--within` days (default 30). Dateless `deprecated` findings and non-imminent `medium`/`low` findings are **warn-only** (still printed, but exit `0`). This makes `arol-ai` a sensible CI gate with no flags:
+A finding is **actionable** (exit `1`) when it is **high**-severity and **not retired**, or **scheduled** to sunset within `--within` days (default 30). Already-retired high findings, dateless `deprecated` findings, and non-imminent `medium`/`low` findings are **warn-only** (still printed, but exit `0`). Pass `--fail-on-retired` to also fail on retired high. This makes `arol-ai` a sensible CI gate with no flags:
 
 ```sh
-npx arol-ai scan            # fails CI on high or imminently-scheduled findings
-npx arol-ai scan --within 7 # only fail when a sunset is within a week
+npx arol-ai scan                 # fails on upcoming high / imminently-scheduled findings
+npx arol-ai scan --within 7      # only fail when a sunset is within a week
+npx arol-ai scan --fail-on-retired  # also fail on already-past high sunsets
 ```
 
 Colors are automatically disabled when output is not a TTY (e.g. piped to a file), or when `NO_COLOR` is set. Use `FORCE_COLOR=1` to force them on.
@@ -154,7 +156,7 @@ jobs:
       - run: npx arol-ai scan
 ```
 
-1. **Exit codes fail the build only on real breaks.** The scan exits non-zero only for high-severity or imminent dated deprecations, and stays warn-only (exit `0`) for `deprecated`/`medium` findings — so it won't block a PR over a deprecation that has no deadline.
+1. **Exit codes fail the build only on real upcoming breaks.** By default the scan exits non-zero for high-severity findings that are still upcoming (or dateless), and for any finding scheduled within `--within` days. Already-retired high findings and warn-only medium/low stay exit `0` unless you pass `--fail-on-retired`.
 2. **Portable to any CI.** `npx arol-ai scan` is the one line that matters (GitLab CI, CircleCI, a cron job, etc.); only the YAML wrapper above is GitHub-specific.
 
 ## The dataset (`deprecations.json`)
