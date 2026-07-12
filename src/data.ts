@@ -8,6 +8,7 @@ import {
   Severity,
   Status,
 } from "./types";
+import { cachedDatasetPath, cacheMetaPath, EnvLike } from "./cache";
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const MATCH_MODES: MatchMode[] = ["pattern", "sdk", "version"];
@@ -63,7 +64,14 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
   const models =
     detect && isStringArray(detect.models) ? detect.models : [];
 
-  // Default to "pattern" — detection keys on real usage, not SDK presence.
+  // Omitted (or null) match defaults to "pattern" — detection keys on real
+  // usage, not SDK presence. An entry with an UNKNOWN match mode is dropped
+  // entirely (fail closed): it was authored for a newer CLI, and since the
+  // dataset auto-updates independently of the binary, running its signals
+  // under the wrong semantics is worse than skipping it.
+  if (r.match != null && !MATCH_MODES.includes(r.match as MatchMode)) {
+    return null;
+  }
   const match: MatchMode = MATCH_MODES.includes(r.match as MatchMode)
     ? (r.match as MatchMode)
     : "pattern";
@@ -123,6 +131,44 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
 }
 
 /**
+ * Parse and validate dataset text (the contents of a deprecations.json).
+ * Shared by the file loader below and by `arol-ai update`, so a remote
+ * dataset passes exactly the same validation as a local one.
+ * @param contents raw JSON text.
+ * @param label where the text came from — used in error messages.
+ */
+export function parseDeprecations(contents: string, label: string): Deprecation[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(contents);
+  } catch (err) {
+    throw new Error(
+      `deprecations dataset is not valid JSON (${label}): ${
+        (err as Error).message
+      }`
+    );
+  }
+
+  // Accept either the full { deprecations: [...] } shape or a bare array.
+  const rawList: unknown = Array.isArray(parsed)
+    ? parsed
+    : (parsed as Dataset)?.deprecations;
+
+  if (!Array.isArray(rawList)) {
+    throw new Error(
+      `deprecations dataset must contain a "deprecations" array (${label}).`
+    );
+  }
+
+  const deprecations: Deprecation[] = [];
+  for (const raw of rawList) {
+    const entry = coerceDeprecation(raw);
+    if (entry) deprecations.push(entry);
+  }
+  return deprecations;
+}
+
+/**
  * Load and validate the deprecations dataset.
  * @param customPath optional path to an alternative dataset file.
  */
@@ -136,32 +182,75 @@ export function loadDeprecations(customPath?: string): Deprecation[] {
     throw new Error(`Could not read deprecations dataset at: ${file}`);
   }
 
-  let parsed: unknown;
+  return parseDeprecations(contents, file);
+}
+
+export type DatasetOrigin = "custom" | "cache" | "bundled";
+
+/** Which dataset file a scan will read, and how fresh it is. */
+export interface DatasetSource {
+  path: string;
+  origin: DatasetOrigin;
+  /** ISO timestamp of the last successful `update`, for cache origin only. */
+  fetchedAt: string | null;
+}
+
+/**
+ * Pick the dataset for a scan: an explicit --data file always wins; otherwise
+ * the auto-updated cache when one exists; otherwise the bundled dataset that
+ * shipped with this CLI version.
+ */
+export function resolveDatasetSource(
+  customPath?: string,
+  env: EnvLike = process.env
+): DatasetSource {
+  if (customPath) {
+    return { path: path.resolve(customPath), origin: "custom", fetchedAt: null };
+  }
+  const cached = cachedDatasetPath(env);
+  if (fs.existsSync(cached)) {
+    let fetchedAt: string | null = null;
+    try {
+      const meta = JSON.parse(fs.readFileSync(cacheMetaPath(env), "utf8"));
+      if (typeof meta?.fetchedAt === "string") fetchedAt = meta.fetchedAt;
+    } catch {
+      /* missing/corrupt meta only costs the freshness label */
+    }
+    return { path: cached, origin: "cache", fetchedAt };
+  }
+  return { path: defaultDataPath(), origin: "bundled", fetchedAt: null };
+}
+
+export interface LoadedDataset {
+  deprecations: Deprecation[];
+  source: DatasetSource;
+  /** Set when the cache was unusable and the bundled dataset was used instead. */
+  warning?: string;
+}
+
+/**
+ * Load the dataset for a scan with the resolution above. A corrupt cache must
+ * never brick the scan: fall back to the bundled dataset and say so. Errors in
+ * an explicit --data file still throw — the user asked for that exact file.
+ */
+export function loadForScan(
+  customPath?: string,
+  env: EnvLike = process.env
+): LoadedDataset {
+  const source = resolveDatasetSource(customPath, env);
   try {
-    parsed = JSON.parse(contents);
+    return { deprecations: loadDeprecations(source.path), source };
   } catch (err) {
-    throw new Error(
-      `deprecations dataset is not valid JSON (${file}): ${
-        (err as Error).message
-      }`
-    );
+    if (source.origin !== "cache") throw err;
+    const bundled: DatasetSource = {
+      path: defaultDataPath(),
+      origin: "bundled",
+      fetchedAt: null,
+    };
+    return {
+      deprecations: loadDeprecations(bundled.path),
+      source: bundled,
+      warning: `cached dataset was invalid (${(err as Error).message}); used the bundled dataset — run arol-ai update`,
+    };
   }
-
-  // Accept either the full { deprecations: [...] } shape or a bare array.
-  const rawList: unknown = Array.isArray(parsed)
-    ? parsed
-    : (parsed as Dataset)?.deprecations;
-
-  if (!Array.isArray(rawList)) {
-    throw new Error(
-      `deprecations dataset must contain a "deprecations" array (${file}).`
-    );
-  }
-
-  const deprecations: Deprecation[] = [];
-  for (const raw of rawList) {
-    const entry = coerceDeprecation(raw);
-    if (entry) deprecations.push(entry);
-  }
-  return deprecations;
 }

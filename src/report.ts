@@ -109,6 +109,8 @@ export interface RenderOptions {
   now?: Date;
   /** The path that was scanned, echoed in the no-scannable-files warning. */
   path?: string;
+  /** One-line dataset provenance ("dataset: updated 2 days ago"), dimmed under the header. */
+  datasetNote?: string;
 }
 
 /** Render the full human-readable terminal report. */
@@ -141,6 +143,7 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
       `Scanned ${result.scannedFiles} ${fileWord} · ${findings.length} ${apiWord} detected`
     )
   );
+  if (opts.datasetNote) out.push(s.gray(opts.datasetNote));
   out.push("");
 
   if (findings.length === 0) {

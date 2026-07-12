@@ -4,7 +4,7 @@
 
 Scan a local code repo for usage of third-party APIs/SDKs that have **upcoming deprecations**, and print a clean report.
 
-**Everything runs locally.** No network calls, no telemetry, no uploads, no auth. Your code never leaves your machine.
+**Your code never leaves your machine.** Scanning is fully local and uploads nothing, ever. Like antivirus definitions, the CLI auto-downloads the latest public deprecation dataset (one JSON file, at most once a day) before scanning, so findings are as fresh as the last merged entry — no new install required. If the network is unavailable the scan silently uses the cached/bundled dataset; opt out entirely with `--offline` or `AROL_OFFLINE=1`.
 
 ```
 npx arol-ai scan
@@ -122,10 +122,26 @@ arol-ai scan [path] [options]
 | `--ignore <glob>` | Skip files matching this glob; repeatable. Combined with `.arolignore`. e.g. `--ignore 'docs/**' --ignore '**/*.gen.ts'` |
 | `--within <days>` | Window (default `30`) for the CI gate's "scheduled soon" check. See exit codes. |
 | `--fail-on-retired` | Also fail on **high**-severity findings whose sunset date is already past. Off by default. |
+| `--offline` | Skip the dataset auto-refresh; scan with the cached/bundled dataset only (also: `AROL_OFFLINE=1`). |
 | `-v, --version` | Print the version |
 | `-h, --help` | Show help |
 
 `scan` is the default command, so `arol-ai ./repo` works too.
+
+### Dataset freshness (`arol-ai update`)
+
+The deprecation dataset updates far more often than the CLI. `scan` therefore auto-refreshes it
+before scanning — at most once per 24h, **fail-soft** (network trouble just means the cached or
+bundled copy is used; a scan never breaks because a download did), and download-only (nothing
+about you or your repo is sent; it is a plain GET of a public JSON file). The report's header
+shows which dataset each scan used, e.g. `dataset: updated today` or `dataset: bundled`.
+
+- `arol-ai update` — force a refresh right now (ignores the 24h window). Exit `2` on failure.
+- The cache lives in `~/.cache/arol` (override with `AROL_CACHE_DIR`).
+- A downloaded dataset is validated **before** it replaces the cache, and a corrupt cache
+  falls back to the bundled dataset with a warning — never a broken scan.
+- Air-gapped or strict-egress environments: `--offline` / `AROL_OFFLINE=1` disables all
+  network use; you get exactly the pre-0.5 behavior.
 
 **Exit codes:** `0` success · `1` an actionable finding · `2` bad path, dataset error, or zero scannable files.
 
@@ -272,7 +288,7 @@ is warn-only (exit 0) unless it's high-severity:
 | `vendor` | string | ✓ | Displayed before the title. |
 | `title` | string | ✓ | Short headline for the finding. |
 | `severity` | `"high"` \| `"medium"` \| `"low"` | ✓ | Drives color, sort order, and the CI gate (high always fails). |
-| `match` | `"pattern"` \| `"sdk"` \| `"version"` | – | How the entry is triggered. **Defaults to `"pattern"`** when omitted. See [How detection works](#how-detection-works). |
+| `match` | `"pattern"` \| `"sdk"` \| `"version"` | – | How the entry is triggered. **Defaults to `"pattern"`** when omitted. Entries with a match mode this CLI version doesn't recognize (from a newer dataset schema) are **skipped**, never misread — the dataset updates independently of the binary. See [How detection works](#how-detection-works). |
 | `status` | `"deprecated"` \| `"scheduled"` \| `"retired"` | – | Lifecycle status. **Usually omit** — it's derived at runtime from `sunset_date`. Set explicitly only to override (e.g. force `"deprecated"`). |
 | `applies_to` | string[] | – | File extensions (no dot) the entry's patterns/models are tested against, e.g. `["py"]` or `["js","ts","jsx","tsx","mjs"]`. Use `["*"]` for any file (model strings). **Defaults to `["*"]`** when omitted. |
 | `version_range` | string | – | For `match: "version"` only — e.g. `"<3.0.0"`, `">=1.2.0"`, `"=2.1.0"`. If omitted, a `version` entry behaves like `"sdk"`. |
@@ -320,7 +336,12 @@ Source layout:
 
 ## Privacy
 
-`arol-ai` makes **zero** network requests. It reads files under the path you point it at, matches them against a local JSON dataset, and prints to your terminal. Nothing is uploaded, logged remotely, or phoned home.
+**Nothing about you or your code is ever uploaded.** Scanning reads files under the path you
+point it at, matches them against a local JSON dataset, and prints to your terminal — no
+telemetry, no logging, no phoning home. The only network use in the entire tool is downloading
+the latest public `deprecations.json` (a plain GET with no identifying parameters), and even
+that is optional: pass `--offline` or set `AROL_OFFLINE=1` for zero network use, where the
+tool behaves exactly as it did before auto-refresh existed.
 
 ## License
 

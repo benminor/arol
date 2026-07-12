@@ -2,12 +2,13 @@
 import * as fs from "fs";
 import * as path from "path";
 import { Command } from "commander";
-import { loadDeprecations } from "./data";
+import { DatasetSource, LoadedDataset, loadForScan } from "./data";
 import { scanRepo } from "./scanner";
 import { renderReport } from "./report";
 import { Severity } from "./types";
 import { effectiveStatus, isActionable } from "./status";
 import { effectiveSeverity, isTestOnly } from "./findings";
+import { AutoUpdateResult, isOffline, maybeAutoUpdate, performUpdate } from "./update";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -39,6 +40,7 @@ interface ScanCliOptions {
   ignore?: string[];
   includeDeps?: boolean;
   failOnRetired?: boolean;
+  offline?: boolean;
 }
 
 /** Commander collector so --ignore can be passed multiple times. */
@@ -46,7 +48,37 @@ function collectIgnore(value: string, previous: string[]): string[] {
   return previous.concat([value]);
 }
 
-function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
+/** "updated today" / "updated 3 days ago" from an ISO timestamp. */
+function describeAge(fetchedAt: string, now: Date): string {
+  const ms = now.getTime() - Date.parse(fetchedAt);
+  if (!Number.isFinite(ms) || ms < 0) return "updated recently";
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  if (days === 0) return "updated today";
+  return `updated ${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+/** One dim line telling the user which dataset this scan used and how fresh. */
+function describeDataset(
+  source: DatasetSource,
+  offline: boolean,
+  auto: AutoUpdateResult | null,
+  now: Date
+): string {
+  const suffix = offline ? " · offline" : "";
+  if (source.origin === "custom") return `dataset: custom (${source.path})`;
+  if (source.origin === "cache") {
+    const age = source.fetchedAt ? describeAge(source.fetchedAt, now) : "updated (age unknown)";
+    return `dataset: ${age}${suffix}`;
+  }
+  // Bundled: distinguish "user chose offline" from "refresh didn't work".
+  if (offline) return `dataset: bundled${suffix}`;
+  if (auto && auto.reason === "error") {
+    return "dataset: bundled · refresh failed — check network or run arol-ai update";
+  }
+  return "dataset: bundled";
+}
+
+async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Promise<void> {
   const root = path.resolve(targetPath ?? ".");
 
   // Validate the target directory up front for a friendly error.
@@ -64,14 +96,27 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     return;
   }
 
-  let deprecations;
+  // Auto-refresh the dataset (fail-soft, ≤ once/day) unless the user opted out
+  // or supplied their own file. Scan behavior never depends on the network:
+  // any failure just means the cached/bundled dataset is used.
+  const offline = opts.offline === true || isOffline(process.env);
+  let auto: AutoUpdateResult | null = null;
+  if (!opts.data && !offline) {
+    auto = await maybeAutoUpdate();
+  }
+
+  let loaded: LoadedDataset;
   try {
-    deprecations = loadDeprecations(opts.data);
+    loaded = loadForScan(opts.data);
   } catch (err) {
     process.stderr.write(`arol: ${(err as Error).message}\n`);
     process.exitCode = 2;
     return;
   }
+  if (loaded.warning) {
+    process.stderr.write(`arol: warning: ${loaded.warning}\n`);
+  }
+  const deprecations = loaded.deprecations;
 
   const result = scanRepo(root, deprecations, {
     ignore: opts.ignore,
@@ -81,6 +126,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
 
   // One clock for the whole run, so rendering and the exit gate agree.
   const now = new Date();
+  const datasetNote = describeDataset(loaded.source, offline, auto, now);
 
   if (opts.json) {
     const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
@@ -88,6 +134,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
     const payload = {
       scannedFiles: result.scannedFiles,
       manifestsScanned: result.manifestsScanned,
+      dataset: { origin: loaded.source.origin, fetchedAt: loaded.source.fetchedAt },
       detected: result.findings.length,
       counts,
       findings: result.findings.map((f) => ({
@@ -117,6 +164,7 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
       color: shouldUseColor(opts.color),
       now,
       path: root,
+      datasetNote,
     });
     process.stdout.write(report + "\n");
   }
@@ -147,14 +195,16 @@ function runScan(targetPath: string | undefined, opts: ScanCliOptions): void {
   if (tripped) process.exitCode = 1;
 }
 
-function main(argv: string[]): void {
+async function main(argv: string[]): Promise<void> {
   const program = new Command();
 
   program
     .name("arol-ai")
     .description(
       "Scan a local repo for upcoming third-party API/SDK deprecations.\n" +
-        "Everything runs locally — no network, no telemetry, your code never leaves the machine."
+        "Your code never leaves the machine — scanning is local and uploads nothing.\n" +
+        "The deprecation dataset auto-refreshes (one public JSON file, ≤ once/day);\n" +
+        "disable with --offline or AROL_OFFLINE=1."
     )
     .version(readVersion(), "-v, --version", "print the arol-ai version");
 
@@ -186,11 +236,36 @@ function main(argv: string[]): void {
       "--fail-on-retired",
       "also fail (exit 1) on high-severity findings whose sunset date is already past"
     )
-    .action((pathArg: string | undefined, options: ScanCliOptions) => {
-      runScan(pathArg, options);
+    .option(
+      "--offline",
+      "skip the dataset auto-refresh; scan with the cached/bundled dataset only"
+    )
+    .action(async (pathArg: string | undefined, options: ScanCliOptions) => {
+      await runScan(pathArg, options);
     });
 
-  program.parse(argv);
+  program
+    .command("update")
+    .description(
+      "download the latest deprecations dataset to the local cache now (ignores the 24h auto-refresh window)"
+    )
+    .option("--url <url>", "alternate dataset URL")
+    .action(async (options: { url?: string }) => {
+      try {
+        const result = await performUpdate({ url: options.url });
+        process.stdout.write(
+          `arol: dataset updated · ${result.entries} entries · ${result.path}\n`
+        );
+      } catch (err) {
+        process.stderr.write(`arol: update failed: ${(err as Error).message}\n`);
+        process.exitCode = 2;
+      }
+    });
+
+  await program.parseAsync(argv);
 }
 
-main(process.argv);
+main(process.argv).catch((err) => {
+  process.stderr.write(`arol: ${(err as Error).message}\n`);
+  process.exitCode = 1;
+});
