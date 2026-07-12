@@ -1,10 +1,18 @@
 import * as fs from "fs";
 import * as path from "path";
-import { Dataset, Deprecation, MatchMode, Severity, Status } from "./types";
+import {
+  Confidence,
+  Dataset,
+  Deprecation,
+  MatchMode,
+  Severity,
+  Status,
+} from "./types";
 
 const SEVERITIES: Severity[] = ["high", "medium", "low"];
 const MATCH_MODES: MatchMode[] = ["pattern", "sdk", "version"];
 const STATUSES: Status[] = ["deprecated", "scheduled", "retired"];
+const CONFIDENCES: Confidence[] = ["confirmed", "reported", "inferred"];
 
 /**
  * Locate the bundled deprecations.json. Tries several candidate locations so the
@@ -65,6 +73,15 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
 
   // Dateless deprecations: null / missing / "" all mean "no removal date".
   const sunset_date = isNonEmptyString(r.sunset_date) ? r.sunset_date : null;
+  // Provenance: when the vendor announced it (null = unknown), the notice URL,
+  // and how well-evidenced the claims are. An invalid confidence is dropped
+  // (undefined = unspecified) rather than guessed.
+  const announced_date = isNonEmptyString(r.announced_date)
+    ? r.announced_date
+    : null;
+  const confidence = CONFIDENCES.includes(r.confidence as Confidence)
+    ? (r.confidence as Confidence)
+    : undefined;
   // Honor an explicit, valid status; otherwise leave it for runtime derivation.
   const status = STATUSES.includes(r.status as Status)
     ? (r.status as Status)
@@ -95,6 +112,9 @@ function coerceDeprecation(raw: unknown): Deprecation | null {
     status,
     applies_to,
     sunset_date,
+    announced_date,
+    source: typeof r.source === "string" ? r.source : "",
+    confidence,
     detect: { sdk, patterns, models },
     version_range,
     migration_url: typeof r.migration_url === "string" ? r.migration_url : "",

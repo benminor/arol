@@ -5,7 +5,14 @@
     "title": "Assistants API (beta)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "py",
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2026-08-26",
     "detect": {
       "sdk": [],
@@ -18,7 +25,8 @@
     },
     "migration_url": "https://platform.openai.com/docs/assistants/migration",
     "summary": "The Assistants API beta is being removed on Aug 26, 2026. Migrate to the Responses API + Conversations API.",
-    "source": "https://developers.openai.com/api/docs/deprecations"
+    "source": "https://developers.openai.com/api/docs/deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "anthropic-claude-4-retirement",
@@ -26,10 +34,15 @@
     "title": "Claude Sonnet 4 & Opus 4",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-06-15",
     "detect": {
-      "sdk": ["@anthropic-ai/sdk", "anthropic"],
+      "sdk": [
+        "@anthropic-ai/sdk",
+        "anthropic"
+      ],
       "patterns": [],
       "models": [
         "claude-sonnet-4-20250514",
@@ -40,7 +53,8 @@
     },
     "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
     "summary": "Claude Sonnet 4 and Opus 4 retire June 15, 2026. Migrate to Sonnet 4.6 / Opus 4.8.",
-    "source": "https://platform.claude.com/docs/en/release-notes/overview"
+    "source": "https://platform.claude.com/docs/en/release-notes/overview",
+    "confidence": "confirmed"
   },
   {
     "id": "anthropic-retired-legacy-claude",
@@ -48,10 +62,15 @@
     "title": "Retired Claude models (Haiku 3, 3.5/3.7 Sonnet, Claude 2.x)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-04-20",
     "detect": {
-      "sdk": ["@anthropic-ai/sdk", "anthropic"],
+      "sdk": [
+        "@anthropic-ai/sdk",
+        "anthropic"
+      ],
       "patterns": [],
       "models": [
         "claude-3-haiku-20240307",
@@ -64,7 +83,8 @@
     },
     "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
     "summary": "These Claude model IDs are already retired. Migrate to current models (Haiku 4.5 / Sonnet 4.6 / Opus 4.8).",
-    "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations"
+    "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "google-gemini-2-5-retirement",
@@ -72,16 +92,27 @@
     "title": "Gemini 2.5 Pro / Flash / Flash-Lite",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-10-16",
     "detect": {
-      "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
+      "sdk": [
+        "@google/generative-ai",
+        "@google/genai",
+        "google-generativeai"
+      ],
       "patterns": [],
-      "models": ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"]
+      "models": [
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite"
+      ]
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
     "summary": "Gemini 2.5 models scheduled for shutdown Oct 16, 2026 (Google states this is the earliest possible date). Migrate to Gemini 3.x.",
-    "source": "https://ai.google.dev/gemini-api/docs/deprecations"
+    "source": "https://ai.google.dev/gemini-api/docs/deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "google-gemini-2-0-shutdown",
@@ -89,10 +120,16 @@
     "title": "Gemini 2.0 Flash family",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-06-01",
     "detect": {
-      "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
+      "sdk": [
+        "@google/generative-ai",
+        "@google/genai",
+        "google-generativeai"
+      ],
       "patterns": [],
       "models": [
         "gemini-2.0-flash",
@@ -103,7 +140,8 @@
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
     "summary": "Gemini 2.0 Flash and Flash-Lite shut down June 1, 2026 (already past). Migrate to gemini-2.5-flash-lite or Gemini 3.x.",
-    "source": "https://firebase.google.com/docs/ai-logic/models"
+    "source": "https://firebase.google.com/docs/ai-logic/models",
+    "confidence": "confirmed"
   },
   {
     "id": "google-gemini-1x-shutdown",
@@ -111,10 +149,16 @@
     "title": "Gemini 1.0 / 1.5 models",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-04-29",
     "detect": {
-      "sdk": ["@google/generative-ai", "@google/genai", "google-generativeai"],
+      "sdk": [
+        "@google/generative-ai",
+        "@google/genai",
+        "google-generativeai"
+      ],
       "patterns": [],
       "models": [
         "gemini-1.5-pro",
@@ -125,7 +169,8 @@
     },
     "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
     "summary": "All Gemini 1.0 and 1.5 models are shut down and return 404. Migrate to Gemini 2.5+ or 3.x.",
-    "source": "https://firebase.google.com/docs/ai-logic/models"
+    "source": "https://firebase.google.com/docs/ai-logic/models",
+    "confidence": "confirmed"
   },
   {
     "id": "openai-retired-gpt4-variants",
@@ -133,15 +178,24 @@
     "title": "Retired GPT-4 preview/variant models",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2025-07-14",
     "detect": {
-      "sdk": ["openai"],
-      "models": ["gpt-4-vision-preview", "gpt-4-32k", "gpt-4.5-preview"]
+      "sdk": [
+        "openai"
+      ],
+      "models": [
+        "gpt-4-vision-preview",
+        "gpt-4-32k",
+        "gpt-4.5-preview"
+      ]
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
     "summary": "These GPT-4 variant/preview models are already retired from the API and return errors: gpt-4-vision-preview (~Dec 2024), gpt-4-32k (~mid-2025), gpt-4.5-preview (July 14, 2025). Migrate to gpt-4.1 or the GPT-5 family.",
-    "source": "https://developers.openai.com/api/docs/deprecations"
+    "source": "https://developers.openai.com/api/docs/deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "openai-legacy-retired-models",
@@ -149,10 +203,14 @@
     "title": "Retired legacy OpenAI models (GPT-3 era, early snapshots)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2024-01-04",
     "detect": {
-      "sdk": ["openai"],
+      "sdk": [
+        "openai"
+      ],
       "patterns": [],
       "models": [
         "text-davinci-003",
@@ -167,7 +225,8 @@
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
     "summary": "These legacy models (GPT-3-era completions and early dated GPT-4/3.5 snapshots) are already retired and return errors. Migrate to current models.",
-    "source": "https://platform.openai.com/docs/deprecations"
+    "source": "https://platform.openai.com/docs/deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "stripe-removed-js-methods",
@@ -175,10 +234,19 @@
     "title": "Removed legacy Stripe.js methods",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2026-03-25",
     "detect": {
-      "sdk": ["@stripe/stripe-js", "stripe"],
+      "sdk": [
+        "@stripe/stripe-js",
+        "stripe"
+      ],
       "patterns": [
         "\\bhandleCardPayment\\b",
         "\\bconfirmPaymentIntent\\b",
@@ -191,7 +259,8 @@
     },
     "migration_url": "https://docs.stripe.com/changelog/dahlia/2026-03-25/remove-legacy-stripejs-methods",
     "summary": "These legacy Stripe.js methods were removed and now throw errors. Replace handleCardPayment/confirmPaymentIntent with confirmCardPayment, handleCardSetup/confirmSetupIntent with confirmCardSetup, and migrate createSource/retrieveSource to the PaymentMethods API.",
-    "source": "https://docs.stripe.com/changelog/dahlia/2026-03-25/remove-legacy-stripejs-methods"
+    "source": "https://docs.stripe.com/changelog/dahlia/2026-03-25/remove-legacy-stripejs-methods",
+    "confidence": "confirmed"
   },
   {
     "id": "stripe-sources-charges-legacy",
@@ -199,10 +268,18 @@
     "title": "Sources API / legacy Charges API",
     "severity": "medium",
     "match": "pattern",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2024-05-15",
     "detect": {
-      "sdk": ["stripe"],
+      "sdk": [
+        "stripe"
+      ],
       "patterns": [
         "\\bstripe\\.sources\\.create",
         "\\bstripe\\.charges\\.create",
@@ -211,7 +288,8 @@
     },
     "migration_url": "https://docs.stripe.com/payments/older-apis",
     "summary": "The Sources API is deprecated (local payment methods stopped being accepted May 15, 2024) and the Charges API is legacy. Migrate to the PaymentMethods + PaymentIntents APIs.",
-    "source": "https://docs.stripe.com/payments/older-apis"
+    "source": "https://docs.stripe.com/payments/older-apis",
+    "confidence": "confirmed"
   },
   {
     "id": "twilio-notify-eol",
@@ -219,15 +297,28 @@
     "title": "Notify API",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "py",
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2025-12-31",
     "detect": {
-      "sdk": ["twilio"],
-      "patterns": ["\\bnotify\\.v1\\b", "\\.notify\\.services\\b"]
+      "sdk": [
+        "twilio"
+      ],
+      "patterns": [
+        "\\bnotify\\.v1\\b",
+        "\\.notify\\.services\\b"
+      ]
     },
     "migration_url": "https://support.twilio.com/hc/en-us/articles/9198083260571-Transitioning-off-Notify",
     "summary": "Twilio Notify reached end of life December 31, 2025. No 1:1 replacement — rebuild with Programmable Messaging / Conversations.",
-    "source": "https://www.twilio.com/en-us/changelog/notify-api-end-of-life-further-extension-notice"
+    "source": "https://www.twilio.com/en-us/changelog/notify-api-end-of-life-further-extension-notice",
+    "confidence": "confirmed"
   },
   {
     "id": "twilio-programmable-chat-retired",
@@ -235,15 +326,29 @@
     "title": "Programmable Chat API",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "py",
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2022-07-25",
     "detect": {
-      "sdk": ["twilio", "twilio-chat"],
-      "patterns": ["\\bchat\\.v2\\b", "\\bIpMessaging\\b"]
+      "sdk": [
+        "twilio",
+        "twilio-chat"
+      ],
+      "patterns": [
+        "\\bchat\\.v2\\b",
+        "\\bIpMessaging\\b"
+      ]
     },
     "migration_url": "https://www.twilio.com/docs/conversations/migrating-chat-conversations",
     "summary": "The standalone Programmable Chat API was sunset July 25, 2022 (Programmable Chat in Flex ended June 1, 2026). Migrate to the Conversations API.",
-    "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice"
+    "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice",
+    "confidence": "confirmed"
   },
   {
     "id": "twilio-chat-package-eol",
@@ -251,15 +356,24 @@
     "title": "twilio-chat SDK package (Programmable Chat)",
     "severity": "high",
     "match": "sdk",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2022-07-25",
     "detect": {
-      "sdk": ["twilio-chat"],
+      "sdk": [
+        "twilio-chat"
+      ],
       "patterns": []
     },
     "migration_url": "https://www.twilio.com/docs/conversations/migrating-chat-conversations",
     "summary": "The twilio-chat npm package is the client SDK for the retired Programmable Chat API (sunset July 25, 2022). Remove the dependency and migrate to @twilio/conversations.",
-    "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice"
+    "source": "https://www.twilio.com/en-us/changelog/programmable-chat-end-of-life-notice",
+    "confidence": "confirmed"
   },
   {
     "id": "aws-sdk-js-v2-eol",
@@ -267,15 +381,24 @@
     "title": "AWS SDK for JavaScript v2",
     "severity": "medium",
     "match": "sdk",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2025-09-08",
     "detect": {
-      "sdk": ["aws-sdk"],
+      "sdk": [
+        "aws-sdk"
+      ],
       "patterns": []
     },
     "migration_url": "https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/",
     "summary": "AWS SDK for JavaScript v2 (the 'aws-sdk' package) reached end-of-support Sept 8, 2025 — no more updates or security fixes. Migrate to the modular AWS SDK v3 (@aws-sdk/* packages).",
-    "source": "https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/"
+    "source": "https://aws.amazon.com/blogs/developer/announcing-end-of-support-for-aws-sdk-for-javascript-v2/",
+    "confidence": "confirmed"
   },
   {
     "id": "hubspot-api-key-hapikey",
@@ -283,15 +406,26 @@
     "title": "Legacy API keys (hapikey)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "py",
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2022-11-30",
     "detect": {
       "sdk": [],
-      "patterns": ["hapikey\\s*=", "hapiKey\\s*="]
+      "patterns": [
+        "hapikey\\s*=",
+        "hapiKey\\s*="
+      ]
     },
     "migration_url": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset",
     "summary": "HubSpot deprecated legacy API keys (the hapikey query param) on Nov 30, 2022. Migrate to Private App access tokens (Bearer auth). The eCommerce Bridge and Accounting Extension APIs were also sunset Dec 1, 2022.",
-    "source": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset"
+    "source": "https://developers.hubspot.com/changelog/upcoming-api-key-sunset",
+    "confidence": "confirmed"
   },
   {
     "id": "openai-python-v0-syntax",
@@ -299,10 +433,14 @@
     "title": "Legacy openai-python v0 call syntax",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["py"],
+    "applies_to": [
+      "py"
+    ],
     "sunset_date": "2023-11-06",
     "detect": {
-      "sdk": ["openai"],
+      "sdk": [
+        "openai"
+      ],
       "patterns": [
         "\\bopenai\\.ChatCompletion\\b",
         "\\bopenai\\.Completion\\.create\\b",
@@ -312,7 +450,8 @@
     },
     "migration_url": "https://github.com/openai/openai-python/discussions/742",
     "summary": "openai-python v1.0 (Nov 2023) removed module-level calls. openai.ChatCompletion/Completion/Embedding.create now raise APIRemovedInV1. Instantiate a client (client = OpenAI(); client.chat.completions.create(...)) or run `openai migrate`.",
-    "source": "https://github.com/openai/openai-python/issues/2172"
+    "source": "https://github.com/openai/openai-python/issues/2172",
+    "confidence": "confirmed"
   },
   {
     "id": "vercel-ai-sdk-v5-removed",
@@ -320,10 +459,14 @@
     "title": "AI SDK APIs removed in v5",
     "severity": "medium",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "status": "deprecated",
     "detect": {
-      "sdk": ["ai"],
+      "sdk": [
+        "ai"
+      ],
       "patterns": [
         "from ['\"]ai/react['\"]",
         "from ['\"]ai/rsc['\"]",
@@ -347,7 +490,8 @@
     },
     "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0",
     "summary": "Removed in AI SDK v5. Import paths: 'ai/react' → '@ai-sdk/react', 'ai/rsc' → '@ai-sdk/rsc', '@ai-sdk/ui-utils' folded into 'ai'. Removed APIs: StreamData, useAssistant, ToolExecutionError; the data-stream helpers (createDataStream, createDataStreamResponse, formatDataStreamPart, processDataStream, DataStreamToSSETransformStream); and the result methods toDataStreamResponse / pipeDataStreamToResponse (now toUIMessageStreamResponse / pipeUIMessageStreamToResponse). LangChainAdapter / LlamaIndexAdapter moved to @ai-sdk/langchain and @ai-sdk/llamaindex. StreamingTextResponse and the experimental_streamText/generateText prefixes predate v5.",
-    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0"
+    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0",
+    "confidence": "confirmed"
   },
   {
     "id": "langchain-legacy-imports",
@@ -355,10 +499,14 @@
     "title": "Legacy LangChain imports & chains",
     "severity": "medium",
     "match": "pattern",
-    "applies_to": ["py"],
+    "applies_to": [
+      "py"
+    ],
     "sunset_date": "2024-05-01",
     "detect": {
-      "sdk": ["langchain"],
+      "sdk": [
+        "langchain"
+      ],
       "patterns": [
         "from langchain\\.llms import",
         "from langchain\\.chat_models import",
@@ -369,7 +517,8 @@
     },
     "migration_url": "https://python.langchain.com/docs/versions/v0_2/",
     "summary": "Pre-0.2 LangChain imports are deprecated/removed: langchain.llms/chat_models/embeddings → langchain_community or provider packages (langchain_openai). LLMChain and initialize_agent are deprecated (use LCEL / create_agent; legacy moved to langchain-classic in 1.0).",
-    "source": "https://github.com/langchain-ai/langchain/discussions/19083"
+    "source": "https://github.com/langchain-ai/langchain/discussions/19083",
+    "confidence": "confirmed"
   },
   {
     "id": "resend-audiences-deprecated",
@@ -377,16 +526,29 @@
     "title": "Audiences API (deprecated in favor of Segments)",
     "severity": "medium",
     "match": "pattern",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs", "py"],
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
     "status": "deprecated",
     "sunset_date": null,
     "detect": {
-      "sdk": ["resend"],
-      "patterns": ["\\bresend\\.audiences\\.", "\\bresend\\.Audiences\\."]
+      "sdk": [
+        "resend"
+      ],
+      "patterns": [
+        "\\bresend\\.audiences\\.",
+        "\\bresend\\.Audiences\\."
+      ]
     },
     "migration_url": "https://resend.com/docs/dashboard/segments/migrating-from-audiences-to-segments",
     "summary": "Resend's Audiences API is deprecated in favor of Segments. The endpoints still work but will be removed in the future (no date announced). Migrate the audiences.* calls to the Segments API.",
-    "source": "https://resend.com/docs/api-reference/audiences/create-audience"
+    "source": "https://resend.com/docs/api-reference/audiences/create-audience",
+    "confidence": "confirmed"
   },
   {
     "id": "clerk-redirect-to-user-profile-component",
@@ -394,7 +556,12 @@
     "title": "<RedirectToUserProfile /> control component deprecated",
     "severity": "low",
     "match": "pattern",
-    "applies_to": ["jsx", "tsx", "js", "ts"],
+    "applies_to": [
+      "jsx",
+      "tsx",
+      "js",
+      "ts"
+    ],
     "sunset_date": null,
     "status": "deprecated",
     "detect": {
@@ -404,12 +571,15 @@
         "@clerk/nuxt",
         "@clerk/vue"
       ],
-      "patterns": ["\\bRedirectToUserProfile\\b"],
+      "patterns": [
+        "\\bRedirectToUserProfile\\b"
+      ],
       "models": []
     },
     "migration_url": "https://clerk.com/docs/reference/objects/clerk#redirect-to-user-profile",
     "summary": "Clerk's <RedirectToUserProfile /> control component is deprecated in favor of the redirectToUserProfile() method on the Clerk object. No removal date announced.",
-    "source": "https://clerk.com/docs/nextjs/reference/components/control/redirect-to-user-profile"
+    "source": "https://clerk.com/docs/nextjs/reference/components/control/redirect-to-user-profile",
+    "confidence": "confirmed"
   },
   {
     "id": "openai-2026-07-23-shutdown",
@@ -417,10 +587,14 @@
     "title": "OpenAI models shut down July 23, 2026 (audio/search/realtime previews, deep research)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-07-23",
     "detect": {
-      "sdk": ["openai"],
+      "sdk": [
+        "openai"
+      ],
       "patterns": [],
       "models": [
         "computer-use-preview-2025-03-11",
@@ -438,7 +612,8 @@
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
     "summary": "These OpenAI model snapshots (audio/search/realtime previews, computer-use preview, and the deep research models) shut down in the API on July 23, 2026. Migrate to current flagship models.",
-    "source": "https://developers.openai.com/api/docs/deprecations"
+    "source": "https://developers.openai.com/api/docs/deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "openai-2026-10-23-shutdown",
@@ -446,10 +621,14 @@
     "title": "OpenAI models shut down October 23, 2026 (legacy GPT-3.5/4/4o, GPT-4.1-nano, o1/o3-mini/o4-mini, gpt-image-1)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "sunset_date": "2026-10-23",
     "detect": {
-      "sdk": ["openai"],
+      "sdk": [
+        "openai"
+      ],
       "patterns": [],
       "models": [
         "gpt-3.5-turbo",
@@ -469,7 +648,8 @@
     },
     "migration_url": "https://platform.openai.com/docs/deprecations",
     "summary": "These OpenAI models shut down in the API on October 23, 2026: GPT-3.5 Turbo, GPT-4, GPT-4 Turbo, GPT-4.1-nano, the gpt-4o-2024-05-13 snapshot, gpt-image-1, and the o1 / o1-pro / o3-mini / o4-mini reasoning models — bare aliases included, since OpenAI retires them alongside the dated snapshots. The still-current gpt-4o alias is intentionally NOT matched (only its retiring 2024-05-13 snapshot is). Migrate to the gpt-4.1 / gpt-5 family or gpt-image-1.5.",
-    "source": "https://developers.openai.com/api/docs/deprecations"
+    "source": "https://developers.openai.com/api/docs/deprecations",
+    "confidence": "confirmed"
   },
   {
     "id": "openai-realtime-beta-removed",
@@ -477,16 +657,28 @@
     "title": "Realtime API beta interface removed",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["py", "js", "ts", "jsx", "tsx", "mjs"],
+    "applies_to": [
+      "py",
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
     "sunset_date": "2026-05-12",
     "detect": {
-      "sdk": ["openai"],
-      "patterns": ["\\bbeta\\.realtime\\b"],
+      "sdk": [
+        "openai"
+      ],
+      "patterns": [
+        "\\bbeta\\.realtime\\b"
+      ],
       "models": []
     },
     "migration_url": "https://platform.openai.com/docs/changelog",
     "summary": "The Realtime API beta was removed from the API on May 12, 2026. Migrate from the client.beta.realtime interface to the released (GA) Realtime API.",
-    "source": "https://platform.openai.com/docs/changelog"
+    "source": "https://platform.openai.com/docs/changelog",
+    "confidence": "confirmed"
   },
   {
     "id": "vercel-ai-sdk-v6-removed",
@@ -494,10 +686,14 @@
     "title": "AI SDK functions/classes removed in ai v6",
     "severity": "medium",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "status": "deprecated",
     "detect": {
-      "sdk": ["ai"],
+      "sdk": [
+        "ai"
+      ],
       "patterns": [
         "convertToCoreMessages",
         "Experimental_Agent",
@@ -512,7 +708,8 @@
     },
     "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
     "summary": "Removed in ai v6. convertToCoreMessages → convertToModelMessages; Experimental_Agent → ToolLoopAgent; the V2 mock classes in ai/test → their V3 versions. Code using these breaks when you upgrade to ai@6.",
-    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0"
+    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
+    "confidence": "confirmed"
   },
   {
     "id": "vercel-ai-sdk-v6-generateobject-deprecated",
@@ -520,16 +717,24 @@
     "title": "generateObject / streamObject deprecated in ai v6",
     "severity": "low",
     "match": "pattern",
-    "applies_to": ["*"],
+    "applies_to": [
+      "*"
+    ],
     "status": "deprecated",
     "detect": {
-      "sdk": ["ai"],
-      "patterns": ["generateObject", "streamObject"],
+      "sdk": [
+        "ai"
+      ],
+      "patterns": [
+        "generateObject",
+        "streamObject"
+      ],
       "models": []
     },
     "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
     "summary": "Deprecated in ai v6 (still works; removal planned for a later version). Use generateText / streamText with an output setting (Output.object) instead.",
-    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0"
+    "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
+    "confidence": "confirmed"
   },
   {
     "id": "docusign-legacy-phone-auth",
@@ -537,7 +742,14 @@
     "title": "Legacy recipient phone/SMS authentication (silent KBA fallback removed)",
     "severity": "high",
     "match": "pattern",
-    "applies_to": ["js", "ts", "jsx", "tsx", "mjs", "py"],
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
     "status": "deprecated",
     "sunset_date": null,
     "detect": {
@@ -554,6 +766,7 @@
     },
     "migration_url": "https://developers.docusign.com/docs/esign-rest-api/how-to/phone-auth/",
     "summary": "DocuSign is retiring legacy recipient phone/SMS authentication (the phoneAuthentication / smsAuthentication recipient objects and idCheckConfigurationName values \"Phone Auth $\" / \"SMS Auth $\"). Enforcement also removes the legacy behavior of silently falling back to knowledge-based authentication (KBA) when phone auth fails or is unavailable — flows relying on that fallback now hard-fail. Migrate to Identity Verification phone auth (identityVerification with your account's phone-auth workflowId).",
-    "source": "https://support.docusign.com/s/document-item?language=en_US&bundleId=gav1643676262430&topicId=con86186fba-3e01-4825-9b59-840733d546c6.html&_LANG=enus"
+    "source": "https://support.docusign.com/s/document-item?language=en_US&bundleId=gav1643676262430&topicId=con86186fba-3e01-4825-9b59-840733d546c6.html&_LANG=enus",
+    "confidence": "reported"
   }
 ]

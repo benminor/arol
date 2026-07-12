@@ -11,6 +11,17 @@ export type Severity = "high" | "medium" | "low";
 export type Status = "deprecated" | "scheduled" | "retired";
 
 /**
+ * Provenance quality of an entry's claims:
+ * - "confirmed": stated by the vendor in the linked source (dates, scope, and
+ *   surface all documented).
+ * - "reported": credible but secondhand — e.g. a production incident report or
+ *   community thread; not (yet) fully documented by the vendor.
+ * - "inferred": triangulated from indirect evidence (golden-path docs, compat
+ *   shims, SDK changes) without an explicit vendor statement.
+ */
+export type Confidence = "confirmed" | "reported" | "inferred";
+
+/**
  * How a deprecation entry is triggered:
  * - "pattern" (default): flag ONLY when detect.patterns or detect.models match in a
  *   scanned source file. Manifest presence alone never triggers. When detect.sdk is
@@ -73,6 +84,16 @@ export interface Deprecation {
   applies_to: string[];
   /** ISO date (YYYY-MM-DD) the API sunsets / loses support, or null when no date is announced. */
   sunset_date: string | null;
+  /** ISO date (YYYY-MM-DD) the vendor announced the deprecation, or null when unknown. */
+  announced_date: string | null;
+  /**
+   * URL of the vendor notice / page this entry's claims are derived from.
+   * Provenance — every claim should be checkable against this. Empty string
+   * only for legacy/custom datasets that predate the field.
+   */
+  source: string;
+  /** Provenance quality of the entry's claims. Undefined = unspecified (legacy data). */
+  confidence?: Confidence;
   detect: Detect;
   /**
    * For match:"version" only — a simple range the declared SDK version must satisfy

@@ -12,8 +12,10 @@ interface RawEntry {
   match?: unknown;
   migration_url?: unknown;
   source?: unknown;
+  confidence?: unknown;
   applies_to?: unknown;
   sunset_date?: unknown;
+  announced_date?: unknown;
   detect?: { patterns?: unknown; models?: unknown };
 }
 
@@ -40,6 +42,25 @@ describe("dataset integrity (deprecations.json)", () => {
       expect(isNonEmptyString(e.match), `${where}: match`).toBe(true);
       expect(isNonEmptyString(e.migration_url), `${where}: migration_url`).toBe(true);
       expect(isNonEmptyString(e.source), `${where}: source`).toBe(true);
+    }
+  });
+
+  it("provenance is explicit: confidence required, announced_date parses", () => {
+    const CONFIDENCES = new Set(["confirmed", "reported", "inferred"]);
+    for (const e of raw) {
+      const where = `entry ${JSON.stringify(e.id)}`;
+      // Every bundled entry must state how well-evidenced it is — agent-drafted
+      // entries (Stage B) inherit this requirement.
+      expect(
+        CONFIDENCES.has(e.confidence as string),
+        `${where}: confidence must be confirmed|reported|inferred`
+      ).toBe(true);
+      if (e.announced_date != null) {
+        expect(
+          parseSunsetDate(e.announced_date as string) !== null,
+          `${where}: announced_date ${JSON.stringify(e.announced_date)} parses`
+        ).toBe(true);
+      }
     }
   });
 
