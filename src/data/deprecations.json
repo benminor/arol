@@ -530,5 +530,30 @@
     "migration_url": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0",
     "summary": "Deprecated in ai v6 (still works; removal planned for a later version). Use generateText / streamText with an output setting (Output.object) instead.",
     "source": "https://ai-sdk.dev/docs/migration-guides/migration-guide-6-0"
+  },
+  {
+    "id": "docusign-legacy-phone-auth",
+    "vendor": "DocuSign",
+    "title": "Legacy recipient phone/SMS authentication (silent KBA fallback removed)",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": ["js", "ts", "jsx", "tsx", "mjs", "py"],
+    "status": "deprecated",
+    "sunset_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bphoneAuthentication\\b['\"]?\\s*[:=]",
+        "\\bphone_authentication\\b['\"]?\\s*[:=]",
+        "\\bsmsAuthentication\\b['\"]?\\s*[:=]",
+        "\\bsms_authentication\\b['\"]?\\s*[:=]",
+        "idCheckConfigurationName['\"]?\\s*[:=]\\s*['\"](?:Phone|SMS) Auth",
+        "id_check_configuration_name['\"]?\\s*[:=]\\s*['\"](?:Phone|SMS) Auth"
+      ],
+      "models": []
+    },
+    "migration_url": "https://developers.docusign.com/docs/esign-rest-api/how-to/phone-auth/",
+    "summary": "DocuSign is retiring legacy recipient phone/SMS authentication (the phoneAuthentication / smsAuthentication recipient objects and idCheckConfigurationName values \"Phone Auth $\" / \"SMS Auth $\"). Enforcement also removes the legacy behavior of silently falling back to knowledge-based authentication (KBA) when phone auth fails or is unavailable — flows relying on that fallback now hard-fail. Migrate to Identity Verification phone auth (identityVerification with your account's phone-auth workflowId).",
+    "source": "https://support.docusign.com/s/document-item?language=en_US&bundleId=gav1643676262430&topicId=con86186fba-3e01-4825-9b59-840733d546c6.html&_LANG=enus"
   }
 ]

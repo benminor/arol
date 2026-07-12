@@ -20,6 +20,7 @@ describe("integration: fixture repos", () => {
       result.findings.map((f) => [f.deprecation.id, f])
     );
     expect(Object.keys(byId).sort()).toEqual([
+      "docusign-legacy-phone-auth",
       "openai-assistants-api",
       "openai-legacy-retired-models",
     ]);
@@ -32,6 +33,15 @@ describe("integration: fixture repos", () => {
     const retired = byId["openai-legacy-retired-models"].patternMatches;
     expect(retired).toEqual([
       { file: "src/agents.ts", line: 9, text: '"text-davinci-003"' },
+    ]);
+
+    // Legacy DocuSign recipient auth: flags the deprecated phoneAuthentication
+    // object and the "Phone Auth $" idCheckConfigurationName value — but never
+    // the identityVerification (IDV) replacement, which lives in fixtures/clean.
+    const docusign = byId["docusign-legacy-phone-auth"].patternMatches;
+    expect(docusign).toEqual([
+      { file: "src/esign.ts", line: 9, text: "phoneAuthentication:" },
+      { file: "src/esign.ts", line: 8, text: 'idCheckConfigurationName: "Phone Auth' },
     ]);
   });
 });
