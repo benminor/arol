@@ -1,0 +1,43 @@
+name: release
+# Publishes arol-ai to npm whenever a version tag is pushed.
+# Release flow becomes exactly two local commands:
+#
+#   npm version minor        # bumps package.json + lock, commits, tags vX.Y.Z
+#   git push --follow-tags   # push commit + tag → this workflow publishes
+#
+# Auth: npm "Trusted Publishing" (OIDC) — no long-lived token, and every
+# publish carries provenance linking the package to this exact workflow run.
+# One-time setup on npmjs.com: package arol-ai → Settings → Trusted Publisher
+# → GitHub Actions → repository benminor/arol, workflow release.yml.
+#
+# Fallback if you'd rather use a token: create an npm Automation token, save
+# it as the NPM_TOKEN repo secret, and add to the publish step:
+#   env: { NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} }
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # OIDC for npm trusted publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted publishing requires a recent npm (>= 11.5); runners often lag.
+      - run: npm install -g npm@latest
+
+      - run: npm ci
+      - run: npm test
+
+      # prepublishOnly runs the build, so this publishes a fresh dist/.
+      - run: npm publish --provenance --access public
