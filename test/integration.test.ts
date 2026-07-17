@@ -21,6 +21,7 @@ describe("integration: fixture repos", () => {
     );
     expect(Object.keys(byId).sort()).toEqual([
       "docusign-legacy-phone-auth",
+      "hubspot-lead-status-property-readonly",
       "openai-assistants-api",
       "openai-legacy-retired-models",
     ]);
@@ -42,6 +43,13 @@ describe("integration: fixture repos", () => {
     expect(docusign).toEqual([
       { file: "src/esign.ts", line: 9, text: "phoneAuthentication:" },
       { file: "src/esign.ts", line: 8, text: 'idCheckConfigurationName: "Phone Auth' },
+    ]);
+
+    // HubSpot Customer Agent Lead Status: flags the write of the soon-to-be
+    // read-only contact property — but never a mere read (see fixtures/clean).
+    const hubspot = byId["hubspot-lead-status-property-readonly"].patternMatches;
+    expect(hubspot).toEqual([
+      { file: "src/hubspot.ts", line: 7, text: "hs_customer_agent_lead_status:" },
     ]);
   });
 });
