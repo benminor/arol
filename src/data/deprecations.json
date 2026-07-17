@@ -768,5 +768,33 @@
     "summary": "DocuSign is retiring legacy recipient phone/SMS authentication (the phoneAuthentication / smsAuthentication recipient objects and idCheckConfigurationName values \"Phone Auth $\" / \"SMS Auth $\"). Enforcement also removes the legacy behavior of silently falling back to knowledge-based authentication (KBA) when phone auth fails or is unavailable — flows relying on that fallback now hard-fail. Migrate to Identity Verification phone auth (identityVerification with your account's phone-auth workflowId).",
     "source": "https://support.docusign.com/s/document-item?language=en_US&bundleId=gav1643676262430&topicId=con86186fba-3e01-4825-9b59-840733d546c6.html&_LANG=enus",
     "confidence": "reported"
+  },
+  {
+    "id": "hubspot-customer-agent-lead-status-readonly",
+    "vendor": "HubSpot",
+    "title": "Customer Agent Lead Status contact property becoming read-only",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
+    "sunset_date": "2026-07-13",
+    "announced_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bhs_customer_agent_lead_status\\b['\"]?\\s*[:=]"
+      ],
+      "models": []
+    },
+    "migration_url": "https://developers.hubspot.com/changelog",
+    "summary": "HubSpot made the Customer Agent Lead Status contact property (hs_customer_agent_lead_status) read-only starting Jul 13, 2026. Code that sets this property when creating or updating a contact is writing to a field the API no longer honors — HubSpot's Customer Agent owns the value now. Reading the property is unaffected; remove any create/update payload that still assigns it.",
+    "source": "https://developers.hubspot.com/changelog",
+    "confidence": "confirmed"
   }
 ]

@@ -21,6 +21,7 @@ describe("integration: fixture repos", () => {
     );
     expect(Object.keys(byId).sort()).toEqual([
       "docusign-legacy-phone-auth",
+      "hubspot-customer-agent-lead-status-readonly",
       "openai-assistants-api",
       "openai-legacy-retired-models",
     ]);
@@ -42,6 +43,12 @@ describe("integration: fixture repos", () => {
     expect(docusign).toEqual([
       { file: "src/esign.ts", line: 9, text: "phoneAuthentication:" },
       { file: "src/esign.ts", line: 8, text: 'idCheckConfigurationName: "Phone Auth' },
+    ]);
+
+    // HubSpot: writing hs_customer_agent_lead_status fires; reading it (fixtures/clean) does not.
+    const hubspot = byId["hubspot-customer-agent-lead-status-readonly"].patternMatches;
+    expect(hubspot).toEqual([
+      { file: "src/hubspot.ts", line: 7, text: "hs_customer_agent_lead_status:" },
     ]);
   });
 });
