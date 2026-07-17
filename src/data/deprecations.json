@@ -768,5 +768,32 @@
     "summary": "DocuSign is retiring legacy recipient phone/SMS authentication (the phoneAuthentication / smsAuthentication recipient objects and idCheckConfigurationName values \"Phone Auth $\" / \"SMS Auth $\"). Enforcement also removes the legacy behavior of silently falling back to knowledge-based authentication (KBA) when phone auth fails or is unavailable — flows relying on that fallback now hard-fail. Migrate to Identity Verification phone auth (identityVerification with your account's phone-auth workflowId).",
     "source": "https://support.docusign.com/s/document-item?language=en_US&bundleId=gav1643676262430&topicId=con86186fba-3e01-4825-9b59-840733d546c6.html&_LANG=enus",
     "confidence": "reported"
+  },
+  {
+    "id": "hubspot-lead-status-property-readonly",
+    "vendor": "HubSpot",
+    "title": "Customer Agent Lead Status contact property becoming read-only",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "py",
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2026-07-13",
+    "announced_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "hs_customer_agent_lead_status[\"']?\\s*[:=]"
+      ]
+    },
+    "migration_url": "https://developers.hubspot.com/changelog",
+    "summary": "HubSpot made the Customer Agent Lead Status contact property (hs_customer_agent_lead_status) read-only as of Jul 13, 2026. Setting or updating this property through the Contacts API is rejected; reading it remains supported. No replacement property is named in the notice.",
+    "source": "https://developers.hubspot.com/changelog",
+    "confidence": "confirmed"
   }
 ]
