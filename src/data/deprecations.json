@@ -795,5 +795,30 @@
     "summary": "HubSpot made the Customer Agent Lead Status contact property (hs_customer_agent_lead_status) read-only as of Jul 13, 2026. Setting or updating this property through the Contacts API is rejected; reading it remains supported. No replacement property is named in the notice.",
     "source": "https://developers.hubspot.com/changelog",
     "confidence": "confirmed"
+  },
+  {
+    "id": "arol-alert-pipeline-test",
+    "vendor": "Arol",
+    "title": "Alert pipeline test entry (inert — removed shortly)",
+    "severity": "low",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "status": "deprecated",
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "openai"
+      ],
+      "patterns": [
+        "\\bzz_arol_alert_pipeline_test_token\\b"
+      ],
+      "models": []
+    },
+    "migration_url": "https://arol.ai",
+    "summary": "Internal end-to-end test of the alert engine. The pattern matches no real code; this entry is inert for scans and is removed after the test.",
+    "source": "https://arol.ai",
+    "confidence": "confirmed"
   }
 ]
