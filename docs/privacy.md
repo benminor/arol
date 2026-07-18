@@ -1,6 +1,8 @@
 # Privacy & network
 
-The short version: **nothing about you or your code is ever uploaded. By anything. Ever.**
+The short version: **scanning uploads nothing. The only thing Arol ever sends anywhere is
+a monitoring report you explicitly opt into with a token — and you can print exactly what
+it contains before you ever send one.**
 
 ## What runs where
 
@@ -8,7 +10,29 @@ Scanning is entirely local. The CLI reads files under the path you point it at, 
 them against a local JSON dataset, and prints to your terminal. No telemetry, no crash
 reporting, no account, no auth, no "anonymous usage statistics."
 
-## The one network call
+## Opt-in monitoring reports (`--report`)
+
+Continuous monitoring needs your consent *and* your token — without both, nothing is ever
+sent:
+
+```sh
+npx arol-ai scan --report <token>     # or AROL_REPORT_TOKEN in CI
+```
+
+What a report contains: **exactly what `--json` prints**, plus a repo name and the CLI
+version. That means findings metadata (dataset entry ids, file paths, line numbers, the
+matched identifier text) and your manifest inventory (dependency names and declared
+versions). It never contains file contents, environment variables, or anything the
+`--json` output doesn't show. To audit precisely what would be sent:
+
+```sh
+npx arol-ai scan --json
+```
+
+Reports are fail-soft (an unreachable endpoint warns on stderr and changes nothing about
+the scan) and `--offline` wins over a present token: zero network means zero.
+
+## Downloading the dataset
 
 `scan` auto-refreshes its deprecation dataset: a plain HTTPS `GET` of a public JSON file
 (the same
@@ -42,5 +66,6 @@ dataset.
 ## Verifying all of this
 
 The scanner is MIT-licensed and small (~3k lines):
-[github.com/benminor/arol](https://github.com/benminor/arol). The only `fetch` in the
-codebase is in `src/update.ts`. Auditing it takes ten minutes — we'd encourage it.
+[github.com/benminor/arol](https://github.com/benminor/arol). The only `fetch` calls in
+the codebase are in `src/update.ts` (the dataset download) and `src/report-upload.ts`
+(which runs solely with your token). Auditing both takes ten minutes — we'd encourage it.

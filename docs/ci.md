@@ -190,6 +190,27 @@ AROL_OFFLINE=1 npx arol-ai scan
 `AROL_CACHE_DIR` relocates the cache directory when `~/.cache` isn't writable or you want
 the dataset vendored alongside your pipeline.
 
+### Continuous monitoring: `--report` (early access)
+
+```sh
+npx arol-ai scan --report <token>
+```
+
+With a monitoring token, each scan also uploads its results and dependency inventory to
+your Arol dashboard — so new deprecations that land *after* your scan can be matched
+against what your repo depends on, and you get alerted without re-scanning. In CI, set
+the token as a secret instead of a flag:
+
+```sh
+AROL_REPORT_TOKEN=<token> npx arol-ai scan
+```
+
+`--report-name <name>` overrides the repo name shown in the dashboard (default: the
+scanned directory's name). Reporting is strictly opt-in and fail-soft — no token means
+nothing is ever sent, and an unreachable endpoint never affects the scan or its exit
+code. Exactly what gets uploaded is documented in
+[Privacy & network](https://github.com/benminor/arol/blob/main/docs/privacy.md).
+
 ### Bringing your own dataset: `--data`
 
 ```sh

@@ -69,6 +69,7 @@ arol-ai update                    # force-refresh the dataset cache now
 | `--fail-on-retired` | Also fail on already-past high-severity sunsets |
 | `--ignore <glob>` | Skip paths (repeatable); also reads `.arolignore` |
 | `--offline` | No network at all (also: `AROL_OFFLINE=1`) |
+| `--report <token>` | Opt-in: upload results + inventory for continuous monitoring (also: `AROL_REPORT_TOKEN`) |
 | `--data <file>` | Use your own dataset file |
 | `--include-deps` | Also scan dependency/build dirs |
 | `--no-color` | Plain output (also respects `NO_COLOR`) |

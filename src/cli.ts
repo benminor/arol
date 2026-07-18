@@ -179,8 +179,13 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
 
   // Opt-in monitoring report. Fail-soft by design: an upload problem warns on
   // stderr and never changes what the scan prints or how it exits.
+  // --offline wins over a present token: "no network at all" means exactly that.
   const reportToken = opts.report ?? process.env.AROL_REPORT_TOKEN;
-  if (reportToken) {
+  if (reportToken && offline) {
+    process.stderr.write(
+      "arol: report skipped (--offline) — no network use in offline mode\n"
+    );
+  } else if (reportToken) {
     const reportName = opts.reportName ?? path.basename(root);
     const sent = await submitReport(
       {
