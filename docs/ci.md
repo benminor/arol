@@ -47,14 +47,58 @@ your code · the vendor's migration guide. A clean scan prints
 
 ## Everyday options
 
+### Skipping paths: `--ignore` and `.arolignore`
+
 ```sh
-npx arol-ai scan --ignore 'docs/**'   # skip paths (repeatable)
-npx arol-ai scan --json               # machine-readable output
-npx arol-ai scan --no-color           # plain text (CI logs, pipes)
+npx arol-ai scan --ignore 'docs/**' --ignore '**/*.gen.ts'
 ```
 
-A `.arolignore` file at the repo root (gitignore-style globs) does the same as `--ignore`,
-permanently.
+Dependency and build directories (`node_modules`, `dist`, `.venv`, `vendor`, …) are
+skipped automatically — `--ignore` is for *your* paths: generated code, vendored examples,
+fixture folders, anything you can't or won't fix. The flag is repeatable and takes
+gitignore-style globs.
+
+For permanent exclusions, put the same globs in a `.arolignore` file at the repo root so
+every scan (local and CI) agrees:
+
+```
+# generated SDK examples we never run
+examples/
+**/*.gen.ts
+```
+
+Comments (`#`), leading `/` anchoring, and trailing `/` for directories all work like
+`.gitignore`. `--ignore` flags and `.arolignore` combine — you never need to choose.
+
+### Machine-readable output: `--json`
+
+```sh
+npx arol-ai scan --json
+```
+
+Emits the full scan as JSON instead of the report: file counts, dataset provenance
+(`origin`, `fetchedAt`), severity counts, and every finding with its id, severity, status,
+dates, vendor `source` URL, `confidence`, and exact file/line matches. Exit codes behave
+identically, so you can keep the CI gate *and* feed dashboards or custom tooling:
+
+```sh
+# e.g. list finding ids with their sunset dates
+npx arol-ai scan --json | jq -r '.findings[] | "\(.id)  \(.sunset_date)"'
+```
+
+The schema is treated as a public interface: fields get added over time, never renamed or
+removed — safe to build scripts against.
+
+### Plain text: `--no-color`
+
+```sh
+npx arol-ai scan --no-color
+```
+
+Disables ANSI colors for log archives and text diffs. You rarely need it explicitly:
+colors already auto-disable when output isn't a terminal (piped or redirected), and the
+standard `NO_COLOR` environment variable is respected. The inverse exists too —
+`FORCE_COLOR=1` keeps colors on in CI systems that render them.
 
 ## Adding it to CI
 
