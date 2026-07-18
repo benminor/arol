@@ -29,8 +29,8 @@ A finding is **actionable** (exit 1) only when it is:
 - **high severity** and not yet retired, or
 - **scheduled to sunset within your window** — `--within <days>`, default 30.
 
-Everything else (medium/low, dateless, already-retired) prints as a warning and exits 0.
-So a red build means: *something you reference breaks soon or breaks hard.* Details:
+Everything else (medium, low, dateless, already-retired) prints as a warning and exits 0.
+So a red build means: \_something you reference breaks soon or breaks hard.\* Details:
 [CI behavior & exit codes](https://github.com/benminor/arol/blob/main/docs/ci.md).
 
 ## 3. Decide: fix, schedule, or silence
@@ -52,11 +52,11 @@ examples/
 **/*.gen.ts
 ```
 
-Findings that live *only* in test files are already down-ranked automatically and never
+Findings that live _only_ in test files are already down-ranked automatically and never
 fail the build — you don't need to exclude your test tree.
 
 **Already retired and you've accepted it →** retired high-severity findings are warn-only
-unless you opted into `--fail-on-retired`. If it's failing, something is *scheduled*, not
+unless you opted into `--fail-on-retired`. If it's failing, something is _scheduled_, not
 retired — check the date.
 
 ## 4. Think it's a false positive?
