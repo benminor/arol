@@ -596,5 +596,14 @@ export function scanRepo(
     findings.push({ deprecation, manifestMatches: mm, patternMatches: [] });
   }
 
-  return { scannedFiles, manifestsScanned: manifests, findings };
+  return {
+    scannedFiles,
+    manifestsScanned: manifests,
+    dependencies: refs.map((r) => ({
+      name: r.name,
+      version: r.version,
+      manifest: r.source,
+    })),
+    findings,
+  };
 }

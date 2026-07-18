@@ -9,6 +9,7 @@ import { Severity } from "./types";
 import { effectiveStatus, isActionable } from "./status";
 import { effectiveSeverity, isTestOnly } from "./findings";
 import { AutoUpdateResult, isOffline, maybeAutoUpdate, performUpdate } from "./update";
+import { submitReport } from "./report-upload";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -41,6 +42,9 @@ interface ScanCliOptions {
   includeDeps?: boolean;
   failOnRetired?: boolean;
   offline?: boolean;
+  report?: string;
+  reportName?: string;
+  reportUrl?: string;
 }
 
 /** Commander collector so --ignore can be passed multiple times. */
@@ -128,13 +132,15 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
   const now = new Date();
   const datasetNote = describeDataset(loaded.source, offline, auto, now);
 
-  if (opts.json) {
-    const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
-    for (const f of result.findings) counts[effectiveSeverity(f)]++;
-    const payload = {
+  const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
+  for (const f of result.findings) counts[effectiveSeverity(f)]++;
+  // One payload shape for --json output AND the opt-in --report upload — the
+  // printed JSON is exactly what monitoring would receive. No hidden fields.
+  const payload = {
       scannedFiles: result.scannedFiles,
       manifestsScanned: result.manifestsScanned,
       dataset: { origin: loaded.source.origin, fetchedAt: loaded.source.fetchedAt },
+      inventory: { dependencies: result.dependencies },
       detected: result.findings.length,
       counts,
       findings: result.findings.map((f) => ({
@@ -157,7 +163,9 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
         manifestMatches: f.manifestMatches,
         patternMatches: f.patternMatches,
       })),
-    };
+  };
+
+  if (opts.json) {
     process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
   } else {
     const report = renderReport(result, {
@@ -167,6 +175,27 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
       datasetNote,
     });
     process.stdout.write(report + "\n");
+  }
+
+  // Opt-in monitoring report. Fail-soft by design: an upload problem warns on
+  // stderr and never changes what the scan prints or how it exits.
+  const reportToken = opts.report ?? process.env.AROL_REPORT_TOKEN;
+  if (reportToken) {
+    const reportName = opts.reportName ?? path.basename(root);
+    const sent = await submitReport(
+      {
+        repo: reportName,
+        cliVersion: readVersion(),
+        reportedAt: now.toISOString(),
+        ...payload,
+      },
+      { token: reportToken, url: opts.reportUrl }
+    );
+    process.stderr.write(
+      sent.ok
+        ? `arol: report sent (${reportName})\n`
+        : `arol: warning: report upload failed (${sent.detail}) — scan results unaffected\n`
+    );
   }
 
   // A scan that walked zero source files is a misconfiguration, not a clean
@@ -239,6 +268,18 @@ async function main(argv: string[]): Promise<void> {
     .option(
       "--offline",
       "skip the dataset auto-refresh; scan with the cached/bundled dataset only"
+    )
+    .option(
+      "--report <token>",
+      "opt-in: upload scan results + inventory for continuous monitoring (also: AROL_REPORT_TOKEN)"
+    )
+    .option(
+      "--report-name <name>",
+      "repo name attached to the report (default: scanned directory name)"
+    )
+    .option(
+      "--report-url <url>",
+      "alternate ingest endpoint for reports (self-hosted / testing)"
     )
     .action(async (pathArg: string | undefined, options: ScanCliOptions) => {
       await runScan(pathArg, options);

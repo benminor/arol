@@ -139,11 +139,27 @@ export interface Finding {
   patternMatches: PatternMatch[];
 }
 
+/** One dependency declared in a manifest — the unit of the repo's inventory. */
+export interface ManifestDependency {
+  /** Dependency name exactly as declared. */
+  name: string;
+  /** Declared version / constraint, or null when none was present. */
+  version: string | null;
+  /** Repo-relative path of the manifest it came from. */
+  manifest: string;
+}
+
 /** Full result of scanning a repository. */
 export interface ScanResult {
   /** Number of source files walked during the inline scan. */
   scannedFiles: number;
   /** Manifest files that were found and parsed. */
   manifestsScanned: string[];
+  /**
+   * Every dependency declared in the parsed manifests — the repo's inventory
+   * (Dependency Surface Profile). Powers `--json` consumers and the opt-in
+   * `--report` upload for continuous monitoring.
+   */
+  dependencies: ManifestDependency[];
   findings: Finding[];
 }

@@ -1,6 +1,9 @@
 node_modules/
 dist/
+.claude/
+.env.local
 *.log
 *.tgz
 .DS_Store
 t.txt
+*.env

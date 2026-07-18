@@ -18,7 +18,12 @@ const FETCH_TIMEOUT_MS = 15_000;
 /** Minimal fetch shape so tests can inject a fake and never touch the network. */
 export type FetchLike = (
   url: string,
-  init?: { signal?: AbortSignal; headers?: Record<string, string> }
+  init?: {
+    method?: string;
+    signal?: AbortSignal;
+    headers?: Record<string, string>;
+    body?: string;
+  }
 ) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>;
 
 export interface UpdateOptions {
