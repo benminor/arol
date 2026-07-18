@@ -1,4 +1,4 @@
-# [arol-ai](https://arol.ai)
+# <img src="https://arol.ai/icon.svg" alt="" width="28" align="top"> [arol-ai](https://arol.ai)
 
 [![tests](https://github.com/benminor/arol/actions/workflows/ci.yml/badge.svg)](https://github.com/benminor/arol/actions/workflows/ci.yml)
 
