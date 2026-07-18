@@ -21,14 +21,26 @@ arol-ai scan
 
 ## Your first scan
 
+Run it from the root of any repository:
+
 ```sh
-npx arol-ai scan            # scan the current directory
-npx arol-ai scan ./my-repo  # or a specific path
+npx arol-ai scan
 ```
 
-The scan walks your source files (`.js .ts .jsx .tsx .py .go` and friends), checks real
-usage against the deprecation dataset, and prints a report. Everything runs locally —
-your code is never uploaded.
+This scans the directory you're standing in: it walks your source files
+(`.js .ts .jsx .tsx .py .go` and friends), checks real usage against the deprecation
+dataset, and prints a report — typically in a few seconds. Everything runs locally; your
+code is never uploaded.
+
+To scan somewhere else without changing directories, pass a path:
+
+```sh
+npx arol-ai scan ./my-repo
+```
+
+Useful when you keep several repos side by side, or in scripts that scan a checkout at a
+known location. Everything else on this page works identically with or without the path
+argument.
 
 ## Reading the report
 
@@ -148,13 +160,44 @@ cached/bundled dataset is used and the scan proceeds — a build can never break
 download did. The report header shows which was used (`dataset: updated today` /
 `dataset: bundled`).
 
+### Forcing a refresh: `arol-ai update`
+
 ```sh
-arol-ai update                     # force a refresh now
-npx arol-ai scan --offline         # no network at all (also: AROL_OFFLINE=1)
-npx arol-ai scan --data ./own.json # your own dataset — auto-refresh skipped
+arol-ai update
 ```
 
-Air-gapped runners: set `AROL_OFFLINE=1` and you have the fully-offline behavior;
-`AROL_CACHE_DIR` relocates the cache. JSON output includes dataset provenance
-(`origin`, `fetchedAt`) and, per finding, the vendor `source` URL and `confidence` — the
-schema is treated as public: fields get added, never renamed or removed.
+Fetches the latest dataset right now, ignoring the 24-hour window. The download is
+validated *before* it replaces your cache — a truncated or corrupt file can never
+overwrite a good one. Unlike `scan`, this command is deliberately loud: it exits `2` on
+failure so you know the refresh didn't happen. Use it when a new deprecation was just
+announced and you want to scan for it immediately, or in CI setups that pre-warm caches.
+
+### Going fully offline: `--offline`
+
+```sh
+npx arol-ai scan --offline
+```
+
+Disables all network use for this run — behavior identical to versions before
+auto-refresh existed. The scan uses the cached dataset if one exists, otherwise the copy
+bundled with the CLI, and the report header says so (`· offline`). For CI runners and
+air-gapped machines, set it environment-wide instead:
+
+```sh
+AROL_OFFLINE=1 npx arol-ai scan
+```
+
+`AROL_CACHE_DIR` relocates the cache directory when `~/.cache` isn't writable or you want
+the dataset vendored alongside your pipeline.
+
+### Bringing your own dataset: `--data`
+
+```sh
+npx arol-ai scan --data ./our-deprecations.json
+```
+
+Scans against your own file — same schema as the bundled dataset, so you can track
+deprecations of *internal* APIs, or pin an exact reviewed dataset snapshot in regulated
+environments. `--data` **replaces** the public dataset rather than merging with it, and
+auto-refresh is skipped entirely: you control that file's freshness. Schema details:
+[Dataset reference](https://github.com/benminor/arol/blob/main/docs/dataset.md).
