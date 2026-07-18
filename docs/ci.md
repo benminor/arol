@@ -196,8 +196,9 @@ the dataset vendored alongside your pipeline.
 npx arol-ai scan --report <token>
 ```
 
-With a monitoring token, each scan also uploads its results and dependency inventory to
-your Arol dashboard — so new deprecations that land *after* your scan can be matched
+Create a token at [arol.ai/dashboard/tokens](https://arol.ai/dashboard/tokens) (sign-in
+creates your account; free during early access). With a monitoring token, each scan also
+uploads its results and dependency inventory to your Arol dashboard — so new deprecations that land *after* your scan can be matched
 against what your repo depends on, and you get alerted without re-scanning. In CI, set
 the token as a secret instead of a flag:
 
