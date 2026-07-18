@@ -1,28 +1,19 @@
-# The dataset
+# Dataset reference
 
-All detection is data-driven. The bundled dataset lives at
-[`src/data/deprecations.json`](https://github.com/benminor/arol/blob/main/src/data/deprecations.json),
-auto-refreshes into every installed CLI within 24 hours of a merge, and can be extended
-without touching code — including with your own private entries.
+All detection is data-driven: one JSON file describes every deprecation Arol knows about.
+This page starts with what the dataset is, then how to read an entry, and works down to
+authoring and contributing your own.
 
-## How entries are made (and why you can trust them)
+## What it is, where it lives
 
-1. **Watch** — a pipeline diffs vendor changelogs, deprecation pages, and release notes
-   daily.
-2. **Draft** — when a page changes, an agent drafts the entry: dates, scope, detection
-   patterns, and the vendor's own words quoted as evidence.
-3. **Review** — a human approves every entry. Each ships with fixtures proving it fires
-   on real usage and stays silent on the replacement API; CI rejects entries that don't.
-4. **Ship** — merged entries reach every user's next scan via auto-refresh. No release.
+The dataset is
+[`src/data/deprecations.json`](https://github.com/benminor/arol/blob/main/src/data/deprecations.json)
+in this repository. A copy ships inside the CLI, and every installed CLI auto-refreshes it
+(at most once per 24h, fail-soft) — so a merged entry reaches every user within a day, no
+release, no action on their side. The report header shows the freshness of the copy each
+scan used.
 
-Every entry records its provenance: `source` (the vendor notice URL) and `confidence` —
-`confirmed` (vendor-stated in the source), `reported` (credible secondhand evidence, e.g.
-a verified production incident), `inferred` (triangulated from the vendor's own "legacy"
-language, compat-shim direction, or current-docs golden path).
-
-## Schema
-
-An entry, annotated:
+## Anatomy of an entry
 
 ```jsonc
 {
@@ -51,6 +42,31 @@ high severity); a future date derives `scheduled`; a past date `retired`. Entrie
 `match` mode a given CLI version doesn't recognize are **skipped, never misread** — data
 and binary ship on different clocks by design.
 
+## How entries are made (and why you can trust them)
+
+1. **Watch** — a pipeline diffs vendor changelogs, deprecation pages, and release notes
+   daily.
+2. **Draft** — when a page changes, an agent drafts the entry: dates, scope, detection
+   patterns, and the vendor's own words quoted as evidence.
+3. **Review** — a human approves every entry. Each ships with fixtures proving it fires
+   on real usage and stays silent on the replacement API; CI rejects entries that don't.
+4. **Ship** — merged entries reach every user's next scan via auto-refresh.
+
+Provenance is explicit on every entry: `source` (the vendor notice URL) and `confidence` —
+`confirmed` (vendor-stated in the source), `reported` (credible secondhand evidence, e.g.
+a verified production incident), `inferred` (triangulated from the vendor's own "legacy"
+language, compat-shim direction, or current-docs golden path).
+
+## Using your own dataset
+
+Point at any file with the same schema — internal APIs welcome:
+
+```sh
+arol-ai scan --data ./our-deprecations.json
+```
+
+`--data` skips auto-refresh entirely: you control that file's freshness.
+
 ## Authoring rules (the ones that keep false positives near zero)
 
 - **Model ids go in `detect.models`, never `detect.patterns`.** Models are quote-anchored
@@ -67,19 +83,9 @@ and binary ship on different clocks by design.
   no-fire case in `fixtures/clean/`, and exact expectations in the integration test —
   derived from a real scan run, not hand-typed.
 
-## Contributing an entry
+## Contributing
 
 PRs to `deprecations.json` are welcome — follow the rules above and include your `source`
 URL and fixtures; CI enforces the rest (schema validity, regex compilation, the
 status/date invariant, fixture behavior). A merged entry is live for every user within a
 day. Missing a whole vendor? [Open an issue](https://github.com/benminor/arol/issues).
-
-## Private/custom datasets
-
-Point at your own file — same schema, internal APIs welcome:
-
-```sh
-arol-ai scan --data ./our-deprecations.json
-```
-
-`--data` skips auto-refresh entirely: you control that file's freshness.

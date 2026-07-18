@@ -1,15 +1,30 @@
-# How detection works
+# Detection & false positives
 
 Arol's core promise is a false-positive rate near zero: a finding should mean *your code
-actually references a deprecated surface*. This page is the machinery behind that promise.
+actually references a deprecated surface*. This page starts with what gets scanned and
+works down into the machinery — and its honest limits.
 
-## Detection keys on usage, not presence
+## The principle: usage, not presence
 
-Having `openai` in your `package.json` triggers nothing by itself. Each dataset entry
-declares a `match` mode:
+Having `openai` in your `package.json` triggers nothing by itself. Findings require your
+source to actually reference the deprecated surface — the method call, the endpoint path,
+the quoted model id. Every match records **file, line, and the exact matched text**, so
+findings cite evidence, never vibes.
 
-- **`pattern`** (default) — fires only when a scanned source file actually references the
-  deprecated surface. Two signal types:
+## What gets scanned
+
+- **Source extensions:** `.js .mjs .cjs .jsx .ts .mts .cts .tsx .py .go`
+- **Manifests parsed:** `package.json` (all dependency fields + npm workspaces),
+  `requirements.txt`, `go.mod`
+- **Skipped by default:** dependency/build dirs (`node_modules`, `dist`, `.venv`,
+  `vendor`, …), docs/prose (`.md`, `.txt`), files over 2 MB, and anything matched by
+  `.arolignore` or `--ignore` globs
+
+## How an entry matches
+
+Each dataset entry declares a `match` mode:
+
+- **`pattern`** (default) — fires only on real source usage. Two signal types:
   - **`detect.patterns`** — regexes for code identifiers, endpoint paths, params
     (`beta\.assistants`, `/v1/threads`, `hapikey\s*=`).
   - **`detect.models`** — model ids matched **only inside string literals**: an opening
@@ -20,12 +35,14 @@ declares a `match` mode:
   end-of-life" (e.g. `aws-sdk` v2).
 - **`version`** — manifest presence *plus* a declared-version range.
 
-## Four layers against false positives
+## The guardrails
+
+Four layers keep matches honest:
 
 1. **Import gating.** When an entry names SDKs, its patterns only run in files that
    actually import a matching package (`import`/`require` in JS/TS, `import`/`from` in
-   Python). A file that merely *mentions* an API in a string or comment doesn't qualify.
-   Model-id matches are never gated — a quoted model id is meaningful wherever it appears.
+   Python). A file that merely *mentions* an API doesn't qualify. Model-id matches are
+   never gated — a quoted model id is meaningful wherever it appears.
 2. **Language scoping.** Entries declare which file extensions their signals are valid in
    (`applies_to`), so a Python-only pattern can never fire in a `.tsx` file.
 3. **Comment stripping.** Comments are blanked before matching (string-aware, so the `//`
@@ -35,24 +52,13 @@ declares a `match` mode:
    (`test/`, `__tests__/`, `*.test.ts`, `test_*.py`, …) are capped at low severity and
    never fail CI — deprecated references in tests are informational, not breakage.
 
-## What gets scanned
-
-- **Source extensions:** `.js .mjs .cjs .jsx .ts .mts .cts .tsx .py .go`
-- **Manifests parsed:** `package.json` (all dependency fields + npm workspaces),
-  `requirements.txt`, `go.mod`
-- **Skipped by default:** dependency/build dirs (`node_modules`, `dist`, `.venv`,
-  `vendor`, …), docs/prose (`.md`, `.txt`), files over 2 MB, and anything in
-  `.arolignore` / `--ignore` globs
-- Every match records **file, line, and the exact matched text** — findings cite
-  evidence, never vibes.
-
 ## Where the data comes from
 
 Every dataset entry carries `source` (the vendor notice it derives from) and `confidence`
 (`confirmed` / `reported` / `inferred`). Entries are drafted by a pipeline that diffs
 vendor lifecycle pages daily, human-reviewed before merge, and validated by fixtures
 proving they fire on real usage and never on the replacement API. Details:
-[The dataset](https://github.com/benminor/arol/blob/main/docs/dataset.md).
+[Dataset reference](https://github.com/benminor/arol/blob/main/docs/dataset.md).
 
 ## Known limits (honest list)
 

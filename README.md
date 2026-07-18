@@ -77,11 +77,11 @@ arol-ai update                    # force-refresh the dataset cache now
 
 | Guide | For when |
 | --- | --- |
-| [A scan just failed your build](https://github.com/benminor/arol/blob/main/docs/failed-scan.md) | CI went red and you want green, honestly |
-| [Running arol in CI](https://github.com/benminor/arol/blob/main/docs/ci.md) | Exit codes, windows, JSON output, air-gapped runners |
-| [How detection works](https://github.com/benminor/arol/blob/main/docs/detection.md) | The false-positive machinery, and its honest limits |
-| [The dataset](https://github.com/benminor/arol/blob/main/docs/dataset.md) | Schema, provenance, contributing entries, custom datasets |
-| [Privacy & network behavior](https://github.com/benminor/arol/blob/main/docs/privacy.md) | Exactly what touches the network (and how to stop it) |
+| [Getting Started](https://github.com/benminor/arol/blob/main/docs/ci.md) | Install, first scan, CI setup, exit codes, JSON output |
+| [Handling Scan Failures](https://github.com/benminor/arol/blob/main/docs/failed-scan.md) | CI went red and you want green, honestly |
+| [Detection & False Positives](https://github.com/benminor/arol/blob/main/docs/detection.md) | How matching works, its guardrails, and its honest limits |
+| [Dataset Reference](https://github.com/benminor/arol/blob/main/docs/dataset.md) | Schema, provenance, contributing entries, custom datasets |
+| [Privacy & Network](https://github.com/benminor/arol/blob/main/docs/privacy.md) | Exactly what touches the network (and how to stop it) |
 
 ## The dataset, in one paragraph
 

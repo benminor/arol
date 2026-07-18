@@ -1,4 +1,4 @@
-# Privacy & network behavior
+# Privacy & network
 
 The short version: **nothing about you or your code is ever uploaded. By anything. Ever.**
 

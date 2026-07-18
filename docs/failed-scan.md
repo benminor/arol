@@ -1,4 +1,4 @@
-# A scan just failed your build
+# Handling scan failures
 
 You're here because `arol-ai scan` exited non-zero in CI. This page gets you from red to
 green honestly — by fixing the real thing or confidently silencing a non-issue. Two minutes.
