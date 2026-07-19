@@ -37,7 +37,7 @@ Each dataset entry declares a `match` mode:
 
 ## The guardrails
 
-Four layers keep matches honest:
+Five layers keep matches honest:
 
 1. **Import gating.** When an entry names SDKs, its patterns only run in files that
    actually import a matching package (`import`/`require` in JS/TS, `import`/`from` in
@@ -51,6 +51,22 @@ Four layers keep matches honest:
 4. **Test down-ranking.** Findings whose only evidence lives in test files
    (`test/`, `__tests__/`, `*.test.ts`, `test_*.py`, …) are capped at low severity and
    never fail CI — deprecated references in tests are informational, not breakage.
+5. **Mention tier for model strings.** A quoted model id in a file that does *not*
+   import the entry's SDK (a marketing page, a mockup, a catalog of names) is weak
+   evidence: it's reported as informational — `no matching SDK import` — capped at
+   low, and never fails the build. The same string next to a real SDK import is
+   full-confidence usage. Down-ranked, not suppressed: the reference stays visible.
+
+Escape hatch for the irreducible cases — inline suppression comments:
+
+```ts
+const legacy = "gpt-4-turbo"; // arol-ignore
+// arol-ignore-next-line
+const alsoFine = "text-davinci-003";
+```
+
+Works with any comment style (`//`, `#`, JSX). Prefer it over `.arolignore` when
+one line, not one file, is the exception.
 
 ## Where the data comes from
 

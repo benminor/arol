@@ -7,7 +7,7 @@ import { scanRepo } from "./scanner";
 import { renderReport } from "./report";
 import { Severity } from "./types";
 import { effectiveStatus, isActionable } from "./status";
-import { effectiveSeverity, isTestOnly } from "./findings";
+import { effectiveSeverity, isMentionOnly, isTestOnly } from "./findings";
 import { AutoUpdateResult, isOffline, maybeAutoUpdate, performUpdate } from "./update";
 import { submitReport } from "./report-upload";
 
@@ -152,6 +152,7 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
         severity: effectiveSeverity(f),
         baseSeverity: f.deprecation.severity,
         testOnly: isTestOnly(f),
+        mentionOnly: isMentionOnly(f),
         match: f.deprecation.match,
         status: effectiveStatus(f.deprecation, now),
         sunset_date: f.deprecation.sunset_date,
@@ -220,10 +221,11 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
       ? parsedWithin
       : DEFAULT_WITHIN_DAYS;
   const failOnRetired = opts.failOnRetired === true;
-  // Test-only findings are down-ranked and never fail the build.
+  // Weak-evidence findings (test-only, mention-only) never fail the build.
   const tripped = result.findings.some(
     (f) =>
       !isTestOnly(f) &&
+      !isMentionOnly(f) &&
       isActionable(f.deprecation, now, within, { failOnRetired })
   );
   if (tripped) process.exitCode = 1;

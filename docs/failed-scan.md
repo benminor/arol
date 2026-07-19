@@ -43,8 +43,15 @@ names the replacement. Re-run the scan; green confirms every cited line is clean
 the warning visibility without blocking today's deploy. High-severity findings still fail
 regardless of window; that's deliberate.
 
-**It's in code that doesn't matter → exclude it.** Add a gitignore-style line to
-`.arolignore` at the repo root:
+**It's in code that doesn't matter → exclude it.** For a single line, an inline
+comment is the surgical tool:
+
+```ts
+const displayName = "gpt-4-turbo"; // arol-ignore
+```
+
+(`// arol-ignore-next-line` works too, in any comment style.) For whole paths,
+add a gitignore-style line to `.arolignore` at the repo root:
 
 ```
 # generated SDK examples we never run

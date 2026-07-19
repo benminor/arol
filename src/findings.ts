@@ -45,10 +45,24 @@ export function isTestOnly(finding: Finding): boolean {
 }
 
 /**
- * The severity to report/sort/gate by: the entry's severity, but capped to "low"
- * when the finding is test-only (a deprecated reference in tests is informational,
- * never HIGH).
+ * A finding is "mention-only" when all of its evidence is mention-tier: model
+ * strings matched in files that do not import any of the entry's SDKs (e.g. a
+ * marketing page rendering model names). Weak evidence — reported as
+ * informational, down-ranked, excluded from the CI gate.
+ */
+export function isMentionOnly(finding: Finding): boolean {
+  if (finding.manifestMatches.length > 0) return false;
+  if (finding.patternMatches.length === 0) return false;
+  return finding.patternMatches.every((m) => m.mention === true);
+}
+
+/**
+ * The severity to report/sort/gate by: the entry's severity, but capped to
+ * "low" when the finding's evidence is weak — all in test files, or all
+ * mention-tier (no SDK import). Weak evidence is informational, never HIGH.
  */
 export function effectiveSeverity(finding: Finding): Severity {
-  return isTestOnly(finding) ? "low" : finding.deprecation.severity;
+  return isTestOnly(finding) || isMentionOnly(finding)
+    ? "low"
+    : finding.deprecation.severity;
 }

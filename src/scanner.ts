@@ -110,6 +110,8 @@ interface CompiledDeprecation {
 interface RegexRun {
   deprecation: Deprecation;
   regexes: RegExp[];
+  /** Matches from this run are weak evidence (see PatternMatch.mention). */
+  mention: boolean;
 }
 
 /** Any of the three string-literal quote characters. */
@@ -306,16 +308,34 @@ function lineNumberAt(lineStarts: number[], offset: number): number {
   return ans + 1;
 }
 
+/**
+ * Collect line numbers suppressed by inline directives, from the RAW source
+ * (directives live in comments, which the match text has stripped):
+ *   // arol-ignore            suppresses matches on its own line
+ *   // arol-ignore-next-line  suppresses matches on the following line
+ * Works with any comment style (//, #, JSX) since only the token is matched.
+ */
+export function collectIgnoredLines(raw: string): Set<number> {
+  const ignored = new Set<number>();
+  const lines = raw.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    if (/\barol-ignore-next-line\b/.test(lines[i])) ignored.add(i + 2);
+    else if (/\barol-ignore\b/.test(lines[i])) ignored.add(i + 1);
+  }
+  return ignored;
+}
+
 /** Match the selected regexes for each deprecation against one file's contents. */
 function scanContent(
   content: string,
   relPath: string,
   runs: RegexRun[],
-  sink: Map<string, PatternMatch[]>
+  sink: Map<string, PatternMatch[]>,
+  ignoredLines: ReadonlySet<number> = new Set()
 ): void {
   const lineStarts = computeLineStarts(content);
 
-  for (const { deprecation, regexes } of runs) {
+  for (const { deprecation, regexes, mention } of runs) {
     if (regexes.length === 0) continue;
     let recorded = sink.get(deprecation.id);
 
@@ -333,6 +353,7 @@ function scanContent(
         const line = lineNumberAt(lineStarts, m.index);
         if (seenLines.has(line)) continue; // one record per line per pattern
         seenLines.add(line);
+        if (ignoredLines.has(line)) continue; // inline arol-ignore directive
 
         // Cite the matched substring itself, normalized and length-capped, so
         // the report points at exactly what triggered the finding.
@@ -342,7 +363,9 @@ function scanContent(
           recorded = [];
           sink.set(deprecation.id, recorded);
         }
-        recorded.push({ file: relPath, line, text });
+        recorded.push(
+          mention ? { file: relPath, line, text, mention: true } : { file: relPath, line, text }
+        );
 
         if (++count >= MAX_MATCHES_PER_PATTERN_PER_FILE) break;
       }
@@ -551,21 +574,34 @@ export function scanRepo(
     const needImports = gateable && applicable.some((c) => c.sdkGate.length > 0);
     const imports = needImports ? extractImports(scanText, ext) : NO_IMPORTS;
 
-    // For each entry: model regexes always run; pattern regexes run only when the
-    // gate is open (empty sdk → always; non-gateable lang → always; else the file
-    // must import a matching package).
+    // For each entry: pattern regexes run only when the gate is open (empty
+    // sdk → always; non-gateable lang → always; else the file must import a
+    // matching package). Model regexes ALWAYS run, but when the entry has an
+    // SDK gate that this file does not satisfy, their matches are recorded as
+    // mention-tier (weak evidence — e.g. a marketing page rendering model
+    // names) instead of full-confidence usage.
     const runs: RegexRun[] = [];
     for (const c of applicable) {
-      const gateOpen =
+      const gateSatisfied =
         c.sdkGate.length === 0 ||
         !gateable ||
         importsSatisfySdk(c.sdkGate, imports);
-      const regexes = gateOpen
-        ? [...c.modelRegexes, ...c.patternRegexes]
-        : c.modelRegexes;
-      if (regexes.length > 0) runs.push({ deprecation: c.deprecation, regexes });
+      if (gateSatisfied) {
+        const regexes = [...c.modelRegexes, ...c.patternRegexes];
+        if (regexes.length > 0) {
+          runs.push({ deprecation: c.deprecation, regexes, mention: false });
+        }
+      } else if (c.modelRegexes.length > 0) {
+        runs.push({
+          deprecation: c.deprecation,
+          regexes: c.modelRegexes,
+          mention: true,
+        });
+      }
     }
-    if (runs.length > 0) scanContent(scanText, rel, runs, patternSink);
+    if (runs.length > 0) {
+      scanContent(scanText, rel, runs, patternSink, collectIgnoredLines(content));
+    }
   }
 
   // 3. Build findings — one per deprecation, evaluated per its match mode.

@@ -130,6 +130,13 @@ export interface PatternMatch {
   line: number;
   /** The matched text (the substring that the pattern matched). */
   text: string;
+  /**
+   * True when this is weak evidence: a model string matched in a file that
+   * does NOT import any of the entry's SDKs (e.g. a marketing page rendering
+   * model names). Mention-tier matches are reported as informational and a
+   * finding backed only by mentions never fails the CI gate.
+   */
+  mention?: boolean;
 }
 
 /** A deprecation that was detected, with the evidence for it. */

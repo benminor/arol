@@ -57,7 +57,14 @@ describe("test-file matches are down-ranked", () => {
   });
 
   it("production usage keeps HIGH", () => {
-    const f = findById(scanTmp({ "src/app.ts": `const m = ${MODEL};\n` }), ID);
+    // Real usage = the SDK is imported (otherwise it's a mention-tier match,
+    // covered in mention.test.ts).
+    const f = findById(
+      scanTmp({
+        "src/app.ts": `import Anthropic from "@anthropic-ai/sdk";\nconst m = ${MODEL};\n`,
+      }),
+      ID
+    );
     expect(isTestOnly(f)).toBe(false);
     expect(effectiveSeverity(f)).toBe("high");
   });
@@ -65,7 +72,7 @@ describe("test-file matches are down-ranked", () => {
   it("mixed test + production evidence stays HIGH", () => {
     const f = findById(
       scanTmp({
-        "src/app.ts": `const m = ${MODEL};\n`,
+        "src/app.ts": `import Anthropic from "@anthropic-ai/sdk";\nconst m = ${MODEL};\n`,
         "src/app.test.ts": `const m = ${MODEL};\n`,
       }),
       ID

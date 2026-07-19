@@ -1,6 +1,6 @@
 import { Deprecation, Finding, ScanResult, Severity } from "./types";
 import { daysUntil, effectiveStatus } from "./status";
-import { effectiveSeverity, isTestOnly } from "./findings";
+import { effectiveSeverity, isMentionOnly, isTestOnly } from "./findings";
 import { SOURCE_EXTENSIONS } from "./scanner";
 
 /** A set of string-styling functions. When disabled, every function is identity. */
@@ -210,7 +210,9 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
       const subject = (d.detect.models?.length ?? 0) > 0 ? "model" : "API";
       const ref = isTestOnly(finding)
         ? `test code references a deprecated ${subject}`
-        : `references a deprecated ${subject}`;
+        : isMentionOnly(finding)
+          ? `references a deprecated ${subject} · no matching SDK import (informational)`
+          : `references a deprecated ${subject}`;
       out.push(`  ${s.dim(ref)} ${s.gray("·")} ${status}`);
     } else {
       out.push(`  ${status}`);
