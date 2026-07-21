@@ -795,5 +795,38 @@
     "summary": "HubSpot made the Customer Agent Lead Status contact property (hs_customer_agent_lead_status) read-only as of Jul 13, 2026. Setting or updating this property through the Contacts API is rejected; reading it remains supported. No replacement property is named in the notice.",
     "source": "https://developers.hubspot.com/changelog",
     "confidence": "confirmed"
+  },
+  {
+    "id": "openai-2027-01-20-shutdown",
+    "vendor": "OpenAI",
+    "title": "OpenAI models shut down January 20, 2027 (legacy realtime, audio, and transcription models)",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2027-01-20",
+    "announced_date": "2026-07-20",
+    "detect": {
+      "sdk": [
+        "openai"
+      ],
+      "patterns": [],
+      "models": [
+        "gpt-realtime",
+        "gpt-audio",
+        "gpt-4o-audio",
+        "gpt-4o-realtime",
+        "gpt-realtime-mini",
+        "gpt-audio-mini",
+        "gpt-4o-mini-realtime",
+        "gpt-4o-mini-audio",
+        "gpt-4o-mini-transcribe-2025-03-20"
+      ]
+    },
+    "migration_url": "https://platform.openai.com/docs/deprecations",
+    "summary": "These OpenAI legacy audio, realtime, and transcription model families and snapshots (gpt-realtime, gpt-audio, gpt-4o-audio, gpt-4o-realtime, gpt-realtime-mini, gpt-audio-mini, gpt-4o-mini-realtime, gpt-4o-mini-audio, and the gpt-4o-mini-transcribe-2025-03-20 snapshot) are scheduled for removal from the API on January 20, 2027. Migrate to gpt-realtime-2.1, gpt-audio-1.5, gpt-realtime-2.1-mini, or gpt-4o-mini-transcribe-2025-12-15 depending on which model is in use.",
+    "source": "https://platform.openai.com/docs/deprecations",
+    "confidence": "confirmed"
   }
 ]
