@@ -770,6 +770,31 @@
     "confidence": "reported"
   },
   {
+    "id": "anthropic-experimental-prompt-tools-retired",
+    "vendor": "Anthropic",
+    "title": "Experimental prompt tools APIs (generate/improve/templatize) retired with the Workbench",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2026-08-17",
+    "announced_date": "2026-07-17",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "/v1/experimental/generate_prompt",
+        "/v1/experimental/improve_prompt",
+        "/v1/experimental/templatize_prompt"
+      ],
+      "models": []
+    },
+    "migration_url": "https://platform.claude.com/docs/en/release-notes/overview",
+    "summary": "The Claude Console's legacy Workbench is being sunset, with access ending August 17, 2026 — saved prompts, variables, and evals do not carry over to the updated Workbench, so export anything worth keeping beforehand. The experimental prompt tools endpoints (/v1/experimental/generate_prompt, /v1/experimental/improve_prompt, /v1/experimental/templatize_prompt) retire the same day; after that date they return an error, and no successor endpoint is named.",
+    "source": "https://platform.claude.com/docs/en/release-notes/overview",
+    "confidence": "confirmed"
+  },
+  {
     "id": "hubspot-lead-status-property-readonly",
     "vendor": "HubSpot",
     "title": "Customer Agent Lead Status contact property becoming read-only",
