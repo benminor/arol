@@ -22,6 +22,7 @@ describe("integration: fixture repos", () => {
     expect(Object.keys(byId).sort()).toEqual([
       "anthropic-experimental-prompt-tools-retired",
       "anthropic-mythos-preview-deprecated",
+      "anthropic-opus-4-7-fast-mode-removed",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
       "openai-2027-01-20-shutdown",
@@ -75,7 +76,21 @@ describe("integration: fixture repos", () => {
     // call — but never the claude-mythos-5 replacement (see fixtures/clean).
     const mythos = byId["anthropic-mythos-preview-deprecated"].patternMatches;
     expect(mythos).toEqual([
-      { file: "src/anthropic.ts", line: 7, text: '"claude-mythos-preview"' },
+      { file: "src/anthropic.ts", line: 15, text: '"claude-mythos-preview"' },
+    ]);
+
+    // Anthropic fast mode removed for Claude Opus 4.7: flags the model + speed:
+    // "fast" combination — but never claude-opus-4-8 fast mode (the migration
+    // target) or claude-opus-4-7 at standard speed (still fully supported),
+    // both of which live in fixtures/clean.
+    const anthropicFastMode =
+      byId["anthropic-opus-4-7-fast-mode-removed"].patternMatches;
+    expect(anthropicFastMode).toEqual([
+      {
+        file: "src/anthropic.ts",
+        line: 7,
+        text: 'model: "claude-opus-4-7", speed: "fast"',
+      },
     ]);
   });
 });

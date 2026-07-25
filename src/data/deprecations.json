@@ -880,5 +880,37 @@
     "summary": "Claude Mythos Preview (claude-mythos-preview) is deprecated; no retirement date is currently announced. Migrate to Claude Mythos 5 (claude-mythos-5).",
     "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
     "confidence": "confirmed"
+  },
+  {
+    "id": "anthropic-opus-4-7-fast-mode-removed",
+    "vendor": "Anthropic",
+    "title": "Fast mode removed for Claude Opus 4.7",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
+    "sunset_date": "2026-07-24",
+    "announced_date": "2026-06-25",
+    "detect": {
+      "sdk": [
+        "@anthropic-ai/sdk",
+        "anthropic"
+      ],
+      "patterns": [
+        "model\\s*[:=]\\s*[\"'`]claude-opus-4-7[\"'`][^})]*?speed\\s*[:=]\\s*[\"'`]fast[\"'`]",
+        "speed\\s*[:=]\\s*[\"'`]fast[\"'`][^})]*?model\\s*[:=]\\s*[\"'`]claude-opus-4-7[\"'`]"
+      ],
+      "models": []
+    },
+    "migration_url": "https://platform.claude.com/docs/en/build-with-claude/fast-mode#supported-models",
+    "summary": "Anthropic removed fast mode for Claude Opus 4.7 on Jul 24, 2026. Requests to claude-opus-4-7 with speed: \"fast\" now return an error instead of silently falling back to standard speed — unlike the earlier Opus 4.6 fast-mode removal, which degraded gracefully with no error. Claude Opus 4.7 itself remains fully available at standard speed; migrate fast-mode requests to Claude Opus 4.8 or Claude Opus 5.",
+    "source": "https://platform.claude.com/docs/en/release-notes/overview",
+    "confidence": "confirmed"
   }
 ]
