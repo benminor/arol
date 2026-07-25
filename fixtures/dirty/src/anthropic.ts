@@ -9,3 +9,10 @@ export const fastOpus47 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Deprecated Mythos preview pinned in a real call.
+export const mythosPreview = anthropic.messages.create({
+  model: "claude-mythos-preview",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});

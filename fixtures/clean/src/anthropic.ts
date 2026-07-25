@@ -16,3 +16,10 @@ export const standardOpus47 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Current Mythos model — must NOT flag the mythos-preview deprecation.
+export const mythos5 = anthropic.messages.create({
+  model: "claude-mythos-5",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});

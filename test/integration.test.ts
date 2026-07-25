@@ -20,9 +20,12 @@ describe("integration: fixture repos", () => {
       result.findings.map((f) => [f.deprecation.id, f])
     );
     expect(Object.keys(byId).sort()).toEqual([
+      "anthropic-experimental-prompt-tools-retired",
+      "anthropic-mythos-preview-deprecated",
       "anthropic-opus-4-7-fast-mode-removed",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
+      "openai-2027-01-20-shutdown",
       "openai-assistants-api",
       "openai-legacy-retired-models",
     ]);
@@ -51,6 +54,29 @@ describe("integration: fixture repos", () => {
     const hubspot = byId["hubspot-lead-status-property-readonly"].patternMatches;
     expect(hubspot).toEqual([
       { file: "src/hubspot.ts", line: 7, text: "hs_customer_agent_lead_status:" },
+    ]);
+
+    // Anthropic experimental prompt tools: flags each retired endpoint path —
+    // but never the Messages API replacement (see fixtures/clean).
+    const promptTools = byId["anthropic-experimental-prompt-tools-retired"].patternMatches;
+    expect(promptTools).toEqual([
+      { file: "src/prompt-tools.ts", line: 5, text: "/v1/experimental/generate_prompt" },
+      { file: "src/prompt-tools.ts", line: 9, text: "/v1/experimental/improve_prompt" },
+      { file: "src/prompt-tools.ts", line: 13, text: "/v1/experimental/templatize_prompt" },
+    ]);
+
+    // Legacy realtime model retiring Jan 20, 2027 — flags the bare quoted model
+    // id, but never the gpt-realtime-2.1 replacement (see fixtures/clean).
+    const realtime = byId["openai-2027-01-20-shutdown"].patternMatches;
+    expect(realtime).toEqual([
+      { file: "src/realtime.ts", line: 6, text: '"gpt-realtime"' },
+    ]);
+
+    // Claude Mythos Preview: flags the deprecated model id pinned in a real
+    // call — but never the claude-mythos-5 replacement (see fixtures/clean).
+    const mythos = byId["anthropic-mythos-preview-deprecated"].patternMatches;
+    expect(mythos).toEqual([
+      { file: "src/anthropic.ts", line: 15, text: '"claude-mythos-preview"' },
     ]);
 
     // Anthropic fast mode removed for Claude Opus 4.7: flags the model + speed:
