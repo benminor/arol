@@ -15,7 +15,10 @@ import {
   ghAvailable,
   ghSetSecret,
   githubRemoteRepo,
+  readRepoToken,
+  REPO_TOKEN_PATH,
   runInit,
+  saveRepoToken,
   secretsUrl,
   shouldSuggestInit,
   WORKFLOW_PATH,
@@ -193,7 +196,11 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
   // Opt-in monitoring report. Fail-soft by design: an upload problem warns on
   // stderr and never changes what the scan prints or how it exits.
   // --offline wins over a present token: "no network at all" means exactly that.
-  const reportToken = opts.report ?? process.env.AROL_REPORT_TOKEN;
+  // Resolution order: explicit flag > env var > this repo's saved token
+  // (written by `arol-ai init` into .git/arol-token — repo-scoped on purpose).
+  const flagOrEnvToken = opts.report ?? process.env.AROL_REPORT_TOKEN;
+  const repoToken = flagOrEnvToken ? null : readRepoToken(root);
+  const reportToken = flagOrEnvToken || repoToken || undefined;
   if (reportToken && offline) {
     process.stderr.write(
       "arol: report skipped (--offline) — no network use in offline mode\n"
@@ -211,7 +218,7 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
     );
     process.stderr.write(
       sent.ok
-        ? `arol: report sent (${reportName})\n`
+        ? `arol: report sent (${reportName})${repoToken ? " · using this repo's saved token" : ""}\n`
         : `arol: warning: report upload failed (${sent.detail}) — scan results unaffected\n`
     );
   }
@@ -298,17 +305,30 @@ async function finishMonitoringSetup(s: Styler, tokenFlag?: string): Promise<voi
     return;
   }
 
+  // 1. Repo-scoped save: local scans in THIS repo report from now on. This is
+  // the part that works everywhere, gh or not — and only ever for this repo.
+  const repoRoot = findRepoRoot(process.cwd());
+  if (repoRoot) {
+    saveRepoToken(repoRoot, token);
+    process.stdout.write(
+      `${s.green(s.bold("✓"))} saved for this repo — local scans here now report to your dashboard\n` +
+        s.dim(
+          `  (${REPO_TOKEN_PATH} · inside .git, can never be committed · remove: rm ${REPO_TOKEN_PATH})\n`
+        )
+    );
+  }
+
+  // 2. CI secret, fully automatic when the GitHub CLI is around.
   if (ghAvailable() && ghSetSecret(token)) {
     process.stdout.write(
-      `${s.green(s.bold("✓"))} repo secret ${s.bold("AROL_REPORT_TOKEN")} set via gh — CI scans now report to your dashboard\n`
+      `${s.green(s.bold("✓"))} repo secret ${s.bold("AROL_REPORT_TOKEN")} set via gh — CI scans report too\n`
     );
     return;
   }
 
-  const repoRoot = findRepoRoot(process.cwd());
   const remote = repoRoot ? githubRemoteRepo(repoRoot) : null;
   process.stdout.write(
-    `${s.yellow("→")} one manual step: add it as a repo secret named ${s.bold("AROL_REPORT_TOKEN")}\n` +
+    `${s.yellow("→")} for CI too: add it as a repo secret named ${s.bold("AROL_REPORT_TOKEN")}\n` +
       (remote
         ? `  ${s.underline(s.cyan(secretsUrl(remote)))}\n`
         : s.dim("  GitHub → your repo → Settings → Secrets and variables → Actions\n"))
@@ -437,7 +457,10 @@ async function main(argv: string[]): Promise<void> {
       await finishMonitoringSetup(s, options.token);
 
       process.stdout.write(
-        `\n${s.bold("done")} — commit the workflow and push.\n`
+        `\n${s.bold("done")} — commit the workflow and push` +
+          s.dim(" · see it live now: ") +
+          s.cyan("npx arol-ai scan") +
+          "\n"
       );
     });
 

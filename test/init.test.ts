@@ -7,7 +7,10 @@ import {
   ghAvailable,
   ghSetSecret,
   githubRemoteRepo,
+  readRepoToken,
+  REPO_TOKEN_PATH,
   runInit,
+  saveRepoToken,
   secretsUrl,
   shouldSuggestInit,
   WORKFLOW_PATH,
@@ -230,6 +233,46 @@ describe("gh secret helpers", () => {
 
     const ok: ExecLike = () => {};
     expect(ghAvailable(ok)).toBe(true);
+  });
+});
+
+/* --------------------------- repo-scoped token --------------------------- */
+
+describe("repo-scoped monitoring token", () => {
+  it("round-trips, and reads from anywhere inside the repo", () => {
+    const repo = mkRepo();
+    saveRepoToken(repo, "tok_abc123");
+    expect(readRepoToken(repo)).toBe("tok_abc123");
+
+    const sub = path.join(repo, "packages", "web");
+    fs.mkdirSync(sub, { recursive: true });
+    expect(readRepoToken(sub)).toBe("tok_abc123");
+  });
+
+  it("is owner-only on disk and lives inside .git", () => {
+    const repo = mkRepo();
+    saveRepoToken(repo, "tok_abc123");
+    const abs = path.join(repo, REPO_TOKEN_PATH);
+    expect(abs).toContain(`${path.sep}.git${path.sep}`);
+    if (process.platform !== "win32") {
+      expect(fs.statSync(abs).mode & 0o777).toBe(0o600);
+    }
+  });
+
+  it("returns null outside a repo, without a token, or when empty", () => {
+    expect(readRepoToken(mkTmp())).toBeNull();
+    expect(readRepoToken(mkRepo())).toBeNull();
+
+    const repo = mkRepo();
+    fs.writeFileSync(path.join(repo, REPO_TOKEN_PATH), "  \n");
+    expect(readRepoToken(repo)).toBeNull();
+  });
+
+  it("stays null for another repo — the scope IS the feature", () => {
+    const configured = mkRepo();
+    saveRepoToken(configured, "tok_abc123");
+    const other = mkRepo();
+    expect(readRepoToken(other)).toBeNull();
   });
 });
 

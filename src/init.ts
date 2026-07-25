@@ -246,6 +246,39 @@ export function runInit(cwd: string, opts: { force?: boolean } = {}): InitOutcom
   return { kind: "written", file: WORKFLOW_PATH };
 }
 
+/** Where the repo-scoped monitoring token lives, relative to the repo root.
+ *
+ * Inside `.git/` deliberately: git can never commit or push anything in there,
+ * it is per-clone (a teammate's checkout is unaffected), and deleting it is
+ * one obvious command. Scoping the token to the repo — instead of a global
+ * config — is the privacy line: the repo you configured monitoring for
+ * reports from anywhere, every other repo stays fully local.
+ */
+export const REPO_TOKEN_PATH = path.join(".git", "arol-token");
+
+/** Persist the monitoring token for this repo (owner-only file permissions). */
+export function saveRepoToken(repoRoot: string, token: string): void {
+  const abs = path.join(repoRoot, REPO_TOKEN_PATH);
+  fs.writeFileSync(abs, token + "\n", { encoding: "utf8", mode: 0o600 });
+}
+
+/**
+ * The saved token for the repo containing `startDir`, or null: outside a git
+ * repo, no token saved, unreadable file, or a worktree/submodule `.git`
+ * pointer (conservative — no upload is always the safe failure mode).
+ */
+export function readRepoToken(startDir: string): string | null {
+  const repoRoot = findRepoRoot(startDir);
+  if (!repoRoot) return null;
+  try {
+    const raw = fs.readFileSync(path.join(repoRoot, REPO_TOKEN_PATH), "utf8");
+    const token = raw.trim();
+    return token.length > 0 ? token : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Should the scan report end with the "add this to CI" hint? Yes only when it
  * could land: interactive use (not already in CI), inside a git repo, and no

@@ -133,13 +133,19 @@ to regenerate), it recognizes a hand-written arol workflow under any other filen
 leaves it alone, and it writes nothing when the repo's remotes aren't GitHub.
 
 After writing the workflow, `init` offers to finish monitoring setup in the same breath:
-paste a token from [arol.ai/dashboard/tokens](https://arol.ai/dashboard/tokens) and — if
-you have the [GitHub CLI](https://cli.github.com) installed — it sets the
-`AROL_REPORT_TOKEN` repo secret for you on the spot. Without `gh`, it prints your repo's
-exact secrets-settings link instead. The prompt only appears in interactive terminals
-(CI runs skip it), Enter skips it, `--token <token>` supplies it non-interactively, and
-re-running `arol-ai init` later brings the offer back. The token is never written to
-disk and never echoed back — it goes into the GitHub secret or nowhere.
+paste a token from [arol.ai/dashboard/tokens](https://arol.ai/dashboard/tokens) and it
+does two things. First, it saves the token **for this repo only** — into
+`.git/arol-token`, which git can never commit or push — so local scans of this repo
+report to your dashboard immediately (`rm .git/arol-token` turns that off). Second, if
+you have the [GitHub CLI](https://cli.github.com) installed, it sets the
+`AROL_REPORT_TOKEN` repo secret on the spot so CI scans report too; without `gh`, it
+prints your repo's exact secrets-settings link instead. The prompt only appears in
+interactive terminals (CI runs skip it), Enter skips it, `--token <token>` supplies it
+non-interactively, and re-running `arol-ai init` later brings the offer back.
+
+The scope rule is deliberate: **only the repo you configured reports — from your laptop
+or from CI. Every other repo you scan stays fully local.** There is no global token and
+no machine-wide state; scanning a repo you never ran `init` in uploads nothing, ever.
 
 ### Everywhere else: one line
 

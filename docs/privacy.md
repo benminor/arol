@@ -19,6 +19,14 @@ sent:
 npx arol-ai scan --report <token>     # or AROL_REPORT_TOKEN in CI
 ```
 
+A token can also be saved **per repo** by `arol-ai init` (pasted at its prompt, stored in
+that repo's `.git/arol-token` — a location git can never commit or push). The scope rule:
+only the repo you configured reports; scanning any other repo uploads nothing. There is
+no global token and no machine-wide state. `rm .git/arol-token` turns a repo's reporting
+off, and the scan says when it used a saved token (`report sent … using this repo's saved
+token`). Resolution order: `--report` flag, then `AROL_REPORT_TOKEN`, then the repo's
+saved token.
+
 What a report contains: **exactly what `--json` prints**, plus a repo name and the CLI
 version. That means findings metadata (dataset entry ids, file paths, line numbers, the
 matched identifier text) and your manifest inventory (dependency names and declared
