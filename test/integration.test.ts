@@ -20,6 +20,7 @@ describe("integration: fixture repos", () => {
       result.findings.map((f) => [f.deprecation.id, f])
     );
     expect(Object.keys(byId).sort()).toEqual([
+      "anthropic-mythos-preview-deprecated",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
       "openai-assistants-api",
@@ -50,6 +51,13 @@ describe("integration: fixture repos", () => {
     const hubspot = byId["hubspot-lead-status-property-readonly"].patternMatches;
     expect(hubspot).toEqual([
       { file: "src/hubspot.ts", line: 7, text: "hs_customer_agent_lead_status:" },
+    ]);
+
+    // Claude Mythos Preview: flags the deprecated model id pinned in a real
+    // call — but never the claude-mythos-5 replacement (see fixtures/clean).
+    const mythos = byId["anthropic-mythos-preview-deprecated"].patternMatches;
+    expect(mythos).toEqual([
+      { file: "src/anthropic.ts", line: 7, text: '"claude-mythos-preview"' },
     ]);
   });
 });

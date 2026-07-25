@@ -795,5 +795,32 @@
     "summary": "HubSpot made the Customer Agent Lead Status contact property (hs_customer_agent_lead_status) read-only as of Jul 13, 2026. Setting or updating this property through the Contacts API is rejected; reading it remains supported. No replacement property is named in the notice.",
     "source": "https://developers.hubspot.com/changelog",
     "confidence": "confirmed"
+  },
+  {
+    "id": "anthropic-mythos-preview-deprecated",
+    "vendor": "Anthropic",
+    "title": "Claude Mythos Preview",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "status": "deprecated",
+    "sunset_date": null,
+    "announced_date": null,
+    "detect": {
+      "sdk": [
+        "@anthropic-ai/sdk",
+        "anthropic"
+      ],
+      "patterns": [],
+      "models": [
+        "claude-mythos-preview"
+      ]
+    },
+    "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "summary": "Claude Mythos Preview (claude-mythos-preview) is deprecated; no retirement date is currently announced. Migrate to Claude Mythos 5 (claude-mythos-5).",
+    "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "confidence": "confirmed"
   }
 ]
