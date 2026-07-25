@@ -21,6 +21,7 @@ describe("integration: fixture repos", () => {
     );
     expect(Object.keys(byId).sort()).toEqual([
       "anthropic-experimental-prompt-tools-retired",
+      "anthropic-mythos-preview-deprecated",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
       "openai-2027-01-20-shutdown",
@@ -68,6 +69,13 @@ describe("integration: fixture repos", () => {
     const realtime = byId["openai-2027-01-20-shutdown"].patternMatches;
     expect(realtime).toEqual([
       { file: "src/realtime.ts", line: 6, text: '"gpt-realtime"' },
+    ]);
+
+    // Claude Mythos Preview: flags the deprecated model id pinned in a real
+    // call — but never the claude-mythos-5 replacement (see fixtures/clean).
+    const mythos = byId["anthropic-mythos-preview-deprecated"].patternMatches;
+    expect(mythos).toEqual([
+      { file: "src/anthropic.ts", line: 7, text: '"claude-mythos-preview"' },
     ]);
   });
 });
