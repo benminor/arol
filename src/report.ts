@@ -4,9 +4,9 @@ import { effectiveSeverity, isMentionOnly, isTestOnly } from "./findings";
 import { SOURCE_EXTENSIONS } from "./scanner";
 
 /** A set of string-styling functions. When disabled, every function is identity. */
-type Styler = ReturnType<typeof makeStyler>;
+export type Styler = ReturnType<typeof makeStyler>;
 
-function makeStyler(enabled: boolean) {
+export function makeStyler(enabled: boolean) {
   const wrap =
     (open: number, close: number) =>
     (s: string): string =>

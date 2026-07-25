@@ -132,6 +132,15 @@ email is your early warning.
 to regenerate), it recognizes a hand-written arol workflow under any other filename and
 leaves it alone, and it writes nothing when the repo's remotes aren't GitHub.
 
+After writing the workflow, `init` offers to finish monitoring setup in the same breath:
+paste a token from [arol.ai/dashboard/tokens](https://arol.ai/dashboard/tokens) and — if
+you have the [GitHub CLI](https://cli.github.com) installed — it sets the
+`AROL_REPORT_TOKEN` repo secret for you on the spot. Without `gh`, it prints your repo's
+exact secrets-settings link instead. The prompt only appears in interactive terminals
+(CI runs skip it), Enter skips it, `--token <token>` supplies it non-interactively, and
+re-running `arol-ai init` later brings the offer back. The token is never written to
+disk and never echoed back — it goes into the GitHub secret or nowhere.
+
 ### Everywhere else: one line
 
 `npx arol-ai scan` is the only line that matters — it works identically in GitLab CI,

@@ -4,10 +4,15 @@ import * as path from "path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   findExistingArolWorkflow,
+  ghAvailable,
+  ghSetSecret,
+  githubRemoteRepo,
   runInit,
+  secretsUrl,
   shouldSuggestInit,
   WORKFLOW_PATH,
   workflowYaml,
+  type ExecLike,
 } from "../src/init";
 import { renderReport } from "../src/report";
 import { mkDep } from "./helpers";
@@ -168,6 +173,63 @@ describe("shouldSuggestInit", () => {
     const repo = mkRepo();
     runInit(repo);
     expect(shouldSuggestInit(repo, {})).toBe(false);
+  });
+});
+
+/* ---------------------- remote parsing + gh helpers ---------------------- */
+
+describe("githubRemoteRepo", () => {
+  it("parses https, ssh, and scp-like GitHub remotes", () => {
+    for (const url of [
+      "https://github.com/benminor/arol.git",
+      "https://github.com/benminor/arol",
+      "ssh://git@github.com/benminor/arol.git",
+      "git@github.com:benminor/arol.git",
+    ]) {
+      const repo = mkRepo(url);
+      expect(githubRemoteRepo(repo), url).toEqual({
+        owner: "benminor",
+        repo: "arol",
+      });
+    }
+  });
+
+  it("returns null without a GitHub remote", () => {
+    expect(githubRemoteRepo(mkRepo())).toBeNull();
+    expect(githubRemoteRepo(mkRepo("https://gitlab.com/a/b.git"))).toBeNull();
+  });
+
+  it("builds the Actions secrets deep link", () => {
+    expect(secretsUrl({ owner: "benminor", repo: "arol" })).toBe(
+      "https://github.com/benminor/arol/settings/secrets/actions"
+    );
+  });
+});
+
+describe("gh secret helpers", () => {
+  it("sends the token over stdin, never argv", () => {
+    const calls: { cmd: string; args: string[]; input?: string }[] = [];
+    const exec: ExecLike = (cmd, args, opts) => {
+      calls.push({ cmd, args, input: opts.input });
+    };
+
+    expect(ghSetSecret("tok_secret_123", exec)).toBe(true);
+    expect(calls).toHaveLength(1);
+    expect(calls[0].cmd).toBe("gh");
+    expect(calls[0].args).toEqual(["secret", "set", "AROL_REPORT_TOKEN"]);
+    expect(calls[0].input).toBe("tok_secret_123");
+    expect(calls[0].args.join(" ")).not.toContain("tok_secret_123");
+  });
+
+  it("returns false when gh fails, instead of throwing", () => {
+    const boom: ExecLike = () => {
+      throw new Error("gh: not logged in");
+    };
+    expect(ghSetSecret("tok", boom)).toBe(false);
+    expect(ghAvailable(boom)).toBe(false);
+
+    const ok: ExecLike = () => {};
+    expect(ghAvailable(ok)).toBe(true);
   });
 });
 

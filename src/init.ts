@@ -1,3 +1,4 @@
+import { execFileSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -99,23 +100,91 @@ function hostOf(url: string): string | null {
 }
 
 /**
- * Remote hostnames from .git/config. Empty when there are no remotes yet, when
+ * Remote urls from .git/config. Empty when there are no remotes yet, when
  * `.git` is a worktree/submodule pointer file, or when parsing fails — all of
  * which we treat permissively (a GitHub workflow file is inert elsewhere).
  */
-export function remoteHosts(repoRoot: string): string[] {
+export function remoteUrls(repoRoot: string): string[] {
   try {
     const gitPath = path.join(repoRoot, ".git");
     if (!fs.statSync(gitPath).isDirectory()) return [];
     const config = fs.readFileSync(path.join(gitPath, "config"), "utf8");
-    const hosts: string[] = [];
-    for (const m of config.matchAll(/^\s*url\s*=\s*(.+?)\s*$/gm)) {
-      const host = hostOf(m[1]);
-      if (host) hosts.push(host);
-    }
-    return hosts;
+    return [...config.matchAll(/^\s*url\s*=\s*(.+?)\s*$/gm)].map((m) => m[1]);
   } catch {
     return [];
+  }
+}
+
+/** Remote hostnames — see remoteUrls for the permissive-empty cases. */
+export function remoteHosts(repoRoot: string): string[] {
+  const hosts: string[] = [];
+  for (const url of remoteUrls(repoRoot)) {
+    const host = hostOf(url);
+    if (host) hosts.push(host);
+  }
+  return hosts;
+}
+
+export interface RemoteRepo {
+  owner: string;
+  repo: string;
+}
+
+/**
+ * owner/repo of the first GitHub remote, for deep links like the Actions
+ * secrets settings page. Handles https://, ssh:// and scp-like forms.
+ */
+export function githubRemoteRepo(repoRoot: string): RemoteRepo | null {
+  for (const url of remoteUrls(repoRoot)) {
+    const host = hostOf(url);
+    if (!host || !host.includes("github")) continue;
+    const m = /[:/]([^:/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/.exec(url);
+    if (m) return { owner: m[1], repo: m[2] };
+  }
+  return null;
+}
+
+/** The repo's GitHub Actions secrets settings page. */
+export function secretsUrl(r: RemoteRepo): string {
+  return `https://github.com/${r.owner}/${r.repo}/settings/secrets/actions`;
+}
+
+/** Injected process runner — throws on non-zero exit, like execFileSync. */
+export type ExecLike = (
+  cmd: string,
+  args: string[],
+  opts: { input?: string }
+) => void;
+
+const defaultExec: ExecLike = (cmd, args, opts) => {
+  execFileSync(cmd, args, { input: opts.input, stdio: ["pipe", "pipe", "pipe"] });
+};
+
+/** Is the GitHub CLI installed and runnable? */
+export function ghAvailable(exec: ExecLike = defaultExec): boolean {
+  try {
+    exec("gh", ["--version"], {});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Set the repo's AROL_REPORT_TOKEN Actions secret via the GitHub CLI. The
+ * token travels over stdin — never argv, which other processes can read.
+ * Returns false on any failure (gh missing, not authed, no repo detected);
+ * the caller falls back to printing manual instructions.
+ */
+export function ghSetSecret(
+  token: string,
+  exec: ExecLike = defaultExec
+): boolean {
+  try {
+    exec("gh", ["secret", "set", "AROL_REPORT_TOKEN"], { input: token });
+    return true;
+  } catch {
+    return false;
   }
 }
 

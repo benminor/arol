@@ -10,7 +10,17 @@ import { effectiveStatus, isActionable } from "./status";
 import { effectiveSeverity, isMentionOnly, isTestOnly } from "./findings";
 import { AutoUpdateResult, isOffline, maybeAutoUpdate, performUpdate } from "./update";
 import { submitReport } from "./report-upload";
-import { runInit, shouldSuggestInit, WORKFLOW_PATH } from "./init";
+import {
+  findRepoRoot,
+  ghAvailable,
+  ghSetSecret,
+  githubRemoteRepo,
+  runInit,
+  secretsUrl,
+  shouldSuggestInit,
+  WORKFLOW_PATH,
+} from "./init";
+import { makeStyler, Styler } from "./report";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -233,6 +243,78 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
   if (tripped) process.exitCode = 1;
 }
 
+const TOKENS_URL = "https://arol.ai/dashboard/tokens";
+
+async function promptForToken(s: Styler): Promise<string> {
+  const readline = await import("node:readline/promises");
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  try {
+    const answer = await rl.question(
+      `${s.bold("paste token")} ${s.dim("(Enter to skip)")}: `
+    );
+    return answer.trim();
+  } finally {
+    rl.close();
+  }
+}
+
+/**
+ * The monitoring leg of `init`: point at the token page, take a pasted (or
+ * --token supplied) token, and try to finish the job entirely in-terminal by
+ * setting the repo's Actions secret via the GitHub CLI. Fallback is the exact
+ * settings URL for this repo. The token is never echoed back and never
+ * written to disk — it goes to the GitHub secret or nowhere.
+ */
+async function finishMonitoringSetup(s: Styler, tokenFlag?: string): Promise<void> {
+  process.stdout.write(
+    `${s.bold("monitoring")} ${s.dim("(optional)")} — get emailed when ${s.bold("new")} deprecations land on this repo\n` +
+      `  create a token at ${s.underline(s.cyan(TOKENS_URL))} ${s.dim("(sign-in creates your account)")}\n`
+  );
+
+  const interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY);
+  let token = tokenFlag?.trim() ?? "";
+  if (!token && interactive) {
+    process.stdout.write("\n");
+    token = await promptForToken(s);
+  }
+
+  if (!token) {
+    process.stdout.write(
+      s.dim(
+        "  skipped — re-run arol-ai init anytime, or add a repo secret named AROL_REPORT_TOKEN\n"
+      )
+    );
+    return;
+  }
+
+  if (token.length < 12) {
+    process.stdout.write(
+      `${s.yellow("·")} that doesn't look like a token — nothing was configured\n` +
+        s.dim(`  create one at ${TOKENS_URL}, then re-run arol-ai init\n`)
+    );
+    return;
+  }
+
+  if (ghAvailable() && ghSetSecret(token)) {
+    process.stdout.write(
+      `${s.green(s.bold("✓"))} repo secret ${s.bold("AROL_REPORT_TOKEN")} set via gh — CI scans now report to your dashboard\n`
+    );
+    return;
+  }
+
+  const repoRoot = findRepoRoot(process.cwd());
+  const remote = repoRoot ? githubRemoteRepo(repoRoot) : null;
+  process.stdout.write(
+    `${s.yellow("→")} one manual step: add it as a repo secret named ${s.bold("AROL_REPORT_TOKEN")}\n` +
+      (remote
+        ? `  ${s.underline(s.cyan(secretsUrl(remote)))}\n`
+        : s.dim("  GitHub → your repo → Settings → Secrets and variables → Actions\n"))
+  );
+}
+
 async function main(argv: string[]): Promise<void> {
   const program = new Command();
 
@@ -299,10 +381,16 @@ async function main(argv: string[]): Promise<void> {
     .description(
       "add the arol scan to this repo's CI — writes .github/workflows/arol.yml\n" +
         "(scans every PR, pushes to main/master, and weekly — deprecations land\n" +
-        "even when nobody pushes)"
+        "even when nobody pushes), then walks you through monitoring setup"
     )
     .option("--force", "overwrite an existing .github/workflows/arol.yml")
-    .action((options: { force?: boolean }) => {
+    .option(
+      "--token <token>",
+      "monitoring token to configure non-interactively (skips the prompt)"
+    )
+    .option("--no-color", "disable colored output")
+    .action(async (options: { force?: boolean; token?: string; color: boolean }) => {
+      const s = makeStyler(shouldUseColor(options.color));
       const outcome = runInit(process.cwd(), { force: options.force });
 
       if (outcome.kind === "not-git") {
@@ -325,24 +413,31 @@ async function main(argv: string[]): Promise<void> {
       }
 
       if (outcome.kind === "already") {
+        // The workflow being present isn't a dead end — monitoring setup is
+        // the remaining value, and "I skipped the token, now I want it" is
+        // exactly a re-run of init.
         process.stdout.write(
           outcome.ours
-            ? `arol: ${outcome.file} already exists — use --force to overwrite\n`
-            : `arol: ${outcome.file} already runs arol — nothing to do\n`
+            ? `${s.yellow("·")} ${outcome.file} already exists — use ${s.bold("--force")} to regenerate\n\n`
+            : `${s.yellow("·")} ${outcome.file} already runs arol\n\n`
         );
+        await finishMonitoringSetup(s, options.token);
         return;
       }
 
       process.stdout.write(
-        `arol: wrote ${WORKFLOW_PATH}\n` +
-          "  · scans pull requests and pushes to main/master\n" +
-          "  · weekly scheduled scan — catches sunsets even when nobody pushes\n" +
-          "\n" +
-          "next steps:\n" +
-          "  1. commit and push the workflow\n" +
-          "  2. optional — get emailed when NEW deprecations land on this repo:\n" +
-          "     create a token at https://arol.ai/dashboard/tokens and add it as\n" +
-          "     a repo secret named AROL_REPORT_TOKEN\n"
+        `${s.green(s.bold("✓"))} wrote ${s.cyan(WORKFLOW_PATH)}\n` +
+          s.dim(
+            "  scans every pull request and push to main/master, plus a weekly\n" +
+              "  scheduled run — sunsets land even when nobody pushes\n"
+          ) +
+          "\n"
+      );
+
+      await finishMonitoringSetup(s, options.token);
+
+      process.stdout.write(
+        `\n${s.bold("done")} — commit the workflow and push.\n`
       );
     });
 
