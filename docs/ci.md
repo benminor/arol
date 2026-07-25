@@ -114,23 +114,32 @@ standard `NO_COLOR` environment variable is respected. The inverse exists too �
 
 ## Adding it to CI
 
-One line in any CI system. GitHub Actions:
+### GitHub Actions: one command
 
-```yaml
-name: arol deprecation scan
-on: [push, pull_request]
-jobs:
-  scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npx arol-ai scan
+```sh
+npx arol-ai init
 ```
 
+This writes `.github/workflows/arol.yml` — review it in your diff, commit, and push. The
+generated workflow scans every pull request and push to `main`/`master`, and runs a
+**weekly scheduled scan**. The schedule matters more than it looks: deprecations land on
+repos where nobody is pushing, and GitHub emails you when a scheduled run fails — that
+email is your early warning.
+
+`init` is deliberately cautious: it never overwrites an existing workflow (use `--force`
+to regenerate), it recognizes a hand-written arol workflow under any other filename and
+leaves it alone, and it writes nothing when the repo's remotes aren't GitHub.
+
+### Everywhere else: one line
+
 `npx arol-ai scan` is the only line that matters — it works identically in GitLab CI,
-CircleCI, Jenkins, or a cron job.
+CircleCI, Jenkins, or a cron job. GitLab, for instance:
+
+```yaml
+arol:
+  image: node:20
+  script: npx arol-ai scan
+```
 
 ## Tuning the CI gate
 
@@ -206,6 +215,8 @@ the token as a secret instead of a flag:
 AROL_REPORT_TOKEN=<token> npx arol-ai scan
 ```
 
+The workflow that `arol-ai init` generates already passes the secret through — adding
+`AROL_REPORT_TOKEN` in your repo's Actions secrets is the only step.
 `--report-name <name>` overrides the repo name shown in the dashboard (default: the
 scanned directory's name). Reporting is strictly opt-in and fail-soft — no token means
 nothing is ever sent, and an unreachable endpoint never affects the scan or its exit

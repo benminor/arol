@@ -111,6 +111,12 @@ export interface RenderOptions {
   path?: string;
   /** One-line dataset provenance ("dataset: updated 2 days ago"), dimmed under the header. */
   datasetNote?: string;
+  /**
+   * Show the "add this scan to CI" nudge after the footer. The caller decides
+   * (interactive run, git repo, no arol workflow yet); rendering additionally
+   * requires findings — a clean scan shouldn't pitch a CI gate.
+   */
+  initHint?: boolean;
 }
 
 /** Render the full human-readable terminal report. */
@@ -241,6 +247,11 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
   }
 
   out.push(footer(s, findings, now));
+  if (opts.initHint) {
+    out.push(
+      s.gray("→ gate CI on this in one command: ") + s.cyan("npx arol-ai init")
+    );
+  }
   return out.join("\n");
 }
 

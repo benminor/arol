@@ -10,6 +10,7 @@ import { effectiveStatus, isActionable } from "./status";
 import { effectiveSeverity, isMentionOnly, isTestOnly } from "./findings";
 import { AutoUpdateResult, isOffline, maybeAutoUpdate, performUpdate } from "./update";
 import { submitReport } from "./report-upload";
+import { runInit, shouldSuggestInit, WORKFLOW_PATH } from "./init";
 
 /** Read this package's version without importing across the rootDir boundary. */
 function readVersion(): string {
@@ -174,6 +175,7 @@ async function runScan(targetPath: string | undefined, opts: ScanCliOptions): Pr
       now,
       path: root,
       datasetNote,
+      initHint: shouldSuggestInit(root),
     });
     process.stdout.write(report + "\n");
   }
@@ -290,6 +292,58 @@ async function main(argv: string[]): Promise<void> {
     )
     .action(async (pathArg: string | undefined, options: ScanCliOptions) => {
       await runScan(pathArg, options);
+    });
+
+  program
+    .command("init")
+    .description(
+      "add the arol scan to this repo's CI — writes .github/workflows/arol.yml\n" +
+        "(scans every PR, pushes to main/master, and weekly — deprecations land\n" +
+        "even when nobody pushes)"
+    )
+    .option("--force", "overwrite an existing .github/workflows/arol.yml")
+    .action((options: { force?: boolean }) => {
+      const outcome = runInit(process.cwd(), { force: options.force });
+
+      if (outcome.kind === "not-git") {
+        process.stderr.write(
+          "arol: not a git repository — run init from inside your repo.\n" +
+            "Recipes for any CI system: https://github.com/benminor/arol/blob/main/docs/ci.md\n"
+        );
+        process.exitCode = 2;
+        return;
+      }
+
+      if (outcome.kind === "non-github") {
+        process.stderr.write(
+          `arol: this repo's remote is ${outcome.host}, not GitHub — no workflow written.\n` +
+            "The scan itself runs in any CI (GitLab, CircleCI, Jenkins — it's one line):\n" +
+            "https://github.com/benminor/arol/blob/main/docs/ci.md\n"
+        );
+        process.exitCode = 2;
+        return;
+      }
+
+      if (outcome.kind === "already") {
+        process.stdout.write(
+          outcome.ours
+            ? `arol: ${outcome.file} already exists — use --force to overwrite\n`
+            : `arol: ${outcome.file} already runs arol — nothing to do\n`
+        );
+        return;
+      }
+
+      process.stdout.write(
+        `arol: wrote ${WORKFLOW_PATH}\n` +
+          "  · scans pull requests and pushes to main/master\n" +
+          "  · weekly scheduled scan — catches sunsets even when nobody pushes\n" +
+          "\n" +
+          "next steps:\n" +
+          "  1. commit and push the workflow\n" +
+          "  2. optional — get emailed when NEW deprecations land on this repo:\n" +
+          "     create a token at https://arol.ai/dashboard/tokens and add it as\n" +
+          "     a repo secret named AROL_REPORT_TOKEN\n"
+      );
     });
 
   program
