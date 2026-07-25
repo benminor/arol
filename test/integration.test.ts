@@ -20,6 +20,7 @@ describe("integration: fixture repos", () => {
       result.findings.map((f) => [f.deprecation.id, f])
     );
     expect(Object.keys(byId).sort()).toEqual([
+      "anthropic-experimental-prompt-tools-retired",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
       "openai-2027-01-20-shutdown",
@@ -51,6 +52,15 @@ describe("integration: fixture repos", () => {
     const hubspot = byId["hubspot-lead-status-property-readonly"].patternMatches;
     expect(hubspot).toEqual([
       { file: "src/hubspot.ts", line: 7, text: "hs_customer_agent_lead_status:" },
+    ]);
+
+    // Anthropic experimental prompt tools: flags each retired endpoint path —
+    // but never the Messages API replacement (see fixtures/clean).
+    const promptTools = byId["anthropic-experimental-prompt-tools-retired"].patternMatches;
+    expect(promptTools).toEqual([
+      { file: "src/prompt-tools.ts", line: 5, text: "/v1/experimental/generate_prompt" },
+      { file: "src/prompt-tools.ts", line: 9, text: "/v1/experimental/improve_prompt" },
+      { file: "src/prompt-tools.ts", line: 13, text: "/v1/experimental/templatize_prompt" },
     ]);
 
     // Legacy realtime model retiring Jan 20, 2027 — flags the bare quoted model
