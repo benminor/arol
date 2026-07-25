@@ -23,6 +23,7 @@ describe("integration: fixture repos", () => {
       "anthropic-experimental-prompt-tools-retired",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
+      "openai-2027-01-20-shutdown",
       "openai-assistants-api",
       "openai-legacy-retired-models",
     ]);
@@ -60,6 +61,11 @@ describe("integration: fixture repos", () => {
       { file: "src/prompt-tools.ts", line: 5, text: "/v1/experimental/generate_prompt" },
       { file: "src/prompt-tools.ts", line: 9, text: "/v1/experimental/improve_prompt" },
       { file: "src/prompt-tools.ts", line: 13, text: "/v1/experimental/templatize_prompt" },
+    // Legacy realtime model retiring Jan 20, 2027 — flags the bare quoted model
+    // id, but never the gpt-realtime-2.1 replacement (see fixtures/clean).
+    const realtime = byId["openai-2027-01-20-shutdown"].patternMatches;
+    expect(realtime).toEqual([
+      { file: "src/realtime.ts", line: 6, text: '"gpt-realtime"' },
     ]);
   });
 });
