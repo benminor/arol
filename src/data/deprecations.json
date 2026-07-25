@@ -912,5 +912,336 @@
     "summary": "Anthropic removed fast mode for Claude Opus 4.7 on Jul 24, 2026. Requests to claude-opus-4-7 with speed: \"fast\" now return an error instead of silently falling back to standard speed — unlike the earlier Opus 4.6 fast-mode removal, which degraded gracefully with no error. Claude Opus 4.7 itself remains fully available at standard speed; migrate fast-mode requests to Claude Opus 4.8 or Claude Opus 5.",
     "source": "https://platform.claude.com/docs/en/release-notes/overview",
     "confidence": "confirmed"
+  },
+  {
+    "id": "request-package-deprecated",
+    "vendor": "Request",
+    "title": "request HTTP client (npm)",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "request"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://github.com/request/request/issues/3142",
+    "summary": "The 'request' HTTP client was deprecated by its maintainers in Feb 2020 and receives no updates. Migrate to fetch (built into Node 18+), axios, or got.",
+    "source": "https://github.com/request/request/issues/3142",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "momentjs-maintenance-mode",
+    "vendor": "Moment.js",
+    "title": "Moment.js (legacy project, maintenance mode)",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "moment"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://momentjs.com/docs/#/-project-status/recommendations/",
+    "summary": "Moment.js declares itself a legacy project in maintenance mode — no new features and no major changes planned. For new work its own docs recommend Temporal, Luxon, Day.js, or date-fns.",
+    "source": "https://momentjs.com/docs/#/-project-status/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "create-react-app-sunset",
+    "vendor": "React",
+    "title": "Create React App (react-scripts)",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "react-scripts",
+        "create-react-app"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://react.dev/blog/2025/02/14/sunsetting-create-react-app",
+    "summary": "Create React App was deprecated Feb 14, 2025 and is in maintenance mode. The React team recommends migrating to a framework (Next.js, React Router) or a build tool like Vite.",
+    "source": "https://react.dev/blog/2025/02/14/sunsetting-create-react-app",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "node-sass-eol",
+    "vendor": "Sass",
+    "title": "node-sass (LibSass)",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "node-sass"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://sass-lang.com/blog/node-sass-is-end-of-life/",
+    "summary": "node-sass (LibSass) is end-of-life: no new features and no support for new Sass or CSS syntax. The 'sass' package (Dart Sass) is the drop-in replacement.",
+    "source": "https://sass-lang.com/blog/node-sass-is-end-of-life/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "tslint-deprecated",
+    "vendor": "TSLint",
+    "title": "TSLint",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "tslint"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://typescript-eslint.io/users/what-about-tslint/",
+    "summary": "TSLint was deprecated in 2019 and has accepted only security fixes since Jan 2020. Migrate to ESLint with typescript-eslint.",
+    "source": "https://github.com/palantir/tslint/issues/4534",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "karma-deprecated",
+    "vendor": "Karma",
+    "title": "Karma test runner",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "karma"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://github.com/karma-runner/karma#readme",
+    "summary": "The Karma test runner was deprecated by its maintainers in April 2023 — only critical security fixes remain. Migrate to Web Test Runner, jasmine-browser-runner, Jest, or Vitest.",
+    "source": "https://github.com/karma-runner/karma",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "angularjs-eol",
+    "vendor": "AngularJS",
+    "title": "AngularJS 1.x",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2021-12-31",
+    "detect": {
+      "sdk": [
+        "angular"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://docs.angularjs.org/misc/version-support-status",
+    "summary": "AngularJS (the 'angular' npm package, 1.x) reached end of life Dec 31, 2021 — no patches or security fixes since. Migrate to modern Angular or another framework.",
+    "source": "https://blog.angular.dev/discontinued-long-term-support-for-angularjs-cc066b82e65a",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "vue-2-eol",
+    "vendor": "Vue",
+    "title": "Vue 2",
+    "severity": "medium",
+    "match": "version",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2023-12-31",
+    "detect": {
+      "sdk": [
+        "vue"
+      ],
+      "patterns": []
+    },
+    "version_range": "<3.0.0",
+    "migration_url": "https://v3-migration.vuejs.org/",
+    "summary": "Vue 2 reached end of life Dec 31, 2023 — no features, updates, or security fixes. Migrate to Vue 3 (a migration build eases the jump).",
+    "source": "https://v2.vuejs.org/eol/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "eslint-8-eol",
+    "vendor": "ESLint",
+    "title": "ESLint v8.x",
+    "severity": "low",
+    "match": "version",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2024-10-05",
+    "detect": {
+      "sdk": [
+        "eslint"
+      ],
+      "patterns": []
+    },
+    "version_range": "<9.0.0",
+    "migration_url": "https://eslint.org/docs/latest/use/migrate-to-9.0.0",
+    "summary": "ESLint v8.x reached end of life Oct 5, 2024 — no further releases in the 8.x line. Migrate to v9 and flat config.",
+    "source": "https://eslint.org/blog/2024/09/eslint-v8-eol-version-support/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "python-distutils-removed",
+    "vendor": "Python",
+    "title": "distutils standard-library module",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "py"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bfrom\\s+distutils\\b",
+        "\\bimport\\s+distutils\\b"
+      ]
+    },
+    "migration_url": "https://peps.python.org/pep-0632/#migration-advice",
+    "summary": "The distutils module was removed from the standard library in Python 3.12 (PEP 632) — these imports fail on modern Python. Migrate to setuptools equivalents.",
+    "source": "https://peps.python.org/pep-0632/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "node-buffer-constructor-deprecated",
+    "vendor": "Node.js",
+    "title": "new Buffer() constructor",
+    "severity": "low",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bnew\\s+Buffer\\s*\\("
+      ]
+    },
+    "migration_url": "https://nodejs.org/api/deprecations.html",
+    "summary": "The new Buffer() constructor is deprecated (Node.js DEP0005) — it can expose uninitialized memory. Use Buffer.alloc() or Buffer.from() instead.",
+    "source": "https://nodejs.org/api/deprecations.html",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "slack-files-upload-retired",
+    "vendor": "Slack",
+    "title": "files.upload API method",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
+    "sunset_date": "2025-11-12",
+    "detect": {
+      "sdk": [
+        "@slack/web-api",
+        "@slack/bolt",
+        "slack-sdk",
+        "slack_sdk",
+        "slack-bolt",
+        "slack_bolt"
+      ],
+      "patterns": [
+        "\\bfiles\\.upload\\b",
+        "\\bfiles_upload\\b"
+      ]
+    },
+    "migration_url": "https://docs.slack.dev/changelog/2024-04-a-better-way-to-upload-files-is-here-to-stay/",
+    "summary": "Slack fully discontinued the files.upload method on Nov 12, 2025. Migrate to files.getUploadURLExternal + files.completeUploadExternal (files_upload_v2 in the Python SDK).",
+    "source": "https://docs.slack.dev/changelog/2025/03/17/files-upload-extension/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "firebase-dynamic-links-shutdown",
+    "vendor": "Firebase",
+    "title": "Dynamic Links",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2025-08-25",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "firebasedynamiclinks\\.googleapis\\.com",
+        "@react-native-firebase/dynamic-links"
+      ]
+    },
+    "migration_url": "https://firebase.google.com/support/dynamic-links-faq",
+    "summary": "Firebase Dynamic Links shut down Aug 25, 2025 — all links, including custom domains and page.link, stopped working. Remove the integration and migrate to App Links / Universal Links or a third-party provider.",
+    "source": "https://firebase.google.com/support/dynamic-links-faq",
+    "confidence": "confirmed"
   }
 ]

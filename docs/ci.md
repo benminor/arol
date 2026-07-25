@@ -1,8 +1,10 @@
 # Getting started
 
-Arol scans a repository for usage of third-party APIs, SDKs, and model ids that are
-deprecated or scheduled to be retired — cited by exact file and line. This page takes you
-from nothing installed to a tuned CI gate.
+Arol catches deprecated third-party APIs, SDKs, and model ids in your code — exact file
+and line — before their sunset dates. It's two commands: `npx arol-ai scan` audits the
+repo you're standing in right now, and `npx arol-ai init` makes it continuous: a gate on
+every PR plus a weekly scheduled scan, so the *next* deprecation finds you before its
+shutdown date does. One is the audition, the other is the point.
 
 ## Install
 
