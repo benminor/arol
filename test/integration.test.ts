@@ -20,6 +20,7 @@ describe("integration: fixture repos", () => {
       result.findings.map((f) => [f.deprecation.id, f])
     );
     expect(Object.keys(byId).sort()).toEqual([
+      "anthropic-opus-4-7-fast-mode-removed",
       "docusign-legacy-phone-auth",
       "hubspot-lead-status-property-readonly",
       "openai-assistants-api",
@@ -50,6 +51,20 @@ describe("integration: fixture repos", () => {
     const hubspot = byId["hubspot-lead-status-property-readonly"].patternMatches;
     expect(hubspot).toEqual([
       { file: "src/hubspot.ts", line: 7, text: "hs_customer_agent_lead_status:" },
+    ]);
+
+    // Anthropic fast mode removed for Claude Opus 4.7: flags the model + speed:
+    // "fast" combination — but never claude-opus-4-8 fast mode (the migration
+    // target) or claude-opus-4-7 at standard speed (still fully supported),
+    // both of which live in fixtures/clean.
+    const anthropicFastMode =
+      byId["anthropic-opus-4-7-fast-mode-removed"].patternMatches;
+    expect(anthropicFastMode).toEqual([
+      {
+        file: "src/anthropic.ts",
+        line: 7,
+        text: 'model: "claude-opus-4-7", speed: "fast"',
+      },
     ]);
   });
 });
