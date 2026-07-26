@@ -187,23 +187,8 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
     return out.join("\n");
   }
 
-  // Severity summary.
-  const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
-  for (const f of findings) counts[effectiveSeverity(f)]++;
-  const summaryParts = [
-    s.red(`${counts.high} high`),
-    s.yellow(`${counts.medium} medium`),
-    s.blue(`${counts.low} low`),
-  ];
-  const noun = findings.length === 1 ? "deprecation" : "deprecations";
-  out.push(
-    s.bold(s.yellow("⚠ ")) +
-      s.bold(`${findings.length} ${noun} found`) +
-      s.gray(` (${summaryParts.join(s.gray(", "))})`)
-  );
-  out.push("");
-
-  // Per finding.
+  // Per finding. (The severity summary prints at the BOTTOM, in the footer —
+  // long outputs scroll, and the terminal shows the end when the run finishes.)
   for (const finding of findings) {
     const d = finding.deprecation;
     const sev = effectiveSeverity(finding);
@@ -277,6 +262,21 @@ function footer(s: Styler, findings: Finding[], now: Date): string {
     return [sep, message].join("\n");
   }
 
+  // Bottom-of-output severity summary: after a long scroll of findings, the
+  // last screenful is what the user actually reads — test-runner style.
+  const counts: Record<Severity, number> = { high: 0, medium: 0, low: 0 };
+  for (const f of findings) counts[effectiveSeverity(f)]++;
+  const summaryParts = [
+    s.red(`${counts.high} high`),
+    s.yellow(`${counts.medium} medium`),
+    s.blue(`${counts.low} low`),
+  ];
+  const noun = findings.length === 1 ? "deprecation" : "deprecations";
+  const summary =
+    s.bold(s.yellow("⚠ ")) +
+    s.bold(`${findings.length} ${noun} found`) +
+    s.gray(` (${summaryParts.join(s.gray(", "))})`);
+
   // The urgent line only makes sense when something actually breaks on a date:
   // a high-severity finding, or any dated (scheduled/retired) finding.
   const hasHighOrDated = findings.some(
@@ -287,12 +287,12 @@ function footer(s: Styler, findings: Finding[], now: Date): string {
 
   const message = hasHighOrDated
     ? s.bold(
-        s.red("⚠ These break on fixed dates. Get alerted before the next one hits you → ")
+        s.red("These break on fixed dates. Get alerted before the next one hits you → ")
       ) + brand
     : s.yellow("Deprecated APIs in your stack will be pulled eventually — stay ahead → ") +
       brand;
 
-  return [sep, message].join("\n");
+  return [sep, summary, message].join("\n");
 }
 
 /** Soft-wrap text to a width, indenting continuation lines. */
