@@ -13,6 +13,14 @@ export function makeStyler(enabled: boolean) {
       enabled ? `\x1b[${open}m${s}\x1b[${close}m` : s;
   return {
     enabled,
+    /**
+     * OSC 8 terminal hyperlink: the styled text becomes clickable in modern
+     * terminals (iTerm2, VS Code, Warp, Windows Terminal...). When styling is
+     * off (piped output, CI logs, NO_COLOR) it falls back to the full URL,
+     * which log viewers auto-link — strictly more useful than a bare domain.
+     */
+    link: (text: string, url: string): string =>
+      enabled ? `\x1b]8;;${url}\x07${text}\x1b]8;;\x07` : url,
     bold: wrap(1, 22),
     dim: wrap(2, 22),
     underline: wrap(4, 24),
@@ -258,12 +266,14 @@ export function renderReport(result: ScanResult, opts: RenderOptions): string {
 /** Status-aware closing CTA, visually separated from the findings above. */
 function footer(s: Styler, findings: Finding[], now: Date): string {
   const sep = s.dim("─".repeat(60));
-  const brand = "arol.ai";
+  // Clickable in OSC 8 terminals; full URL in plain output so CI log viewers
+  // auto-link it (a bare "arol.ai" is clickable nowhere).
+  const brand = s.link(s.cyan(s.bold("arol.ai")), "https://arol.ai");
 
   if (findings.length === 0) {
     const message =
       s.green("✓ Clean today — but new deprecations land constantly. Stay covered → ") +
-      s.cyan(s.bold(brand));
+      brand;
     return [sep, message].join("\n");
   }
 
@@ -277,12 +287,10 @@ function footer(s: Styler, findings: Finding[], now: Date): string {
 
   const message = hasHighOrDated
     ? s.bold(
-        s.red(
-          `⚠ These break on fixed dates. Get alerted before the next one hits you → ${brand}`
-        )
-      )
+        s.red("⚠ These break on fixed dates. Get alerted before the next one hits you → ")
+      ) + brand
     : s.yellow("Deprecated APIs in your stack will be pulled eventually — stay ahead → ") +
-      s.cyan(s.bold(brand));
+      brand;
 
   return [sep, message].join("\n");
 }
