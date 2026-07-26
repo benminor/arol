@@ -216,29 +216,23 @@ AROL_OFFLINE=1 npx arol-ai scan
 `AROL_CACHE_DIR` relocates the cache directory when `~/.cache` isn't writable or you want
 the dataset vendored alongside your pipeline.
 
-### Continuous monitoring: `--report` (early access)
+### Continuous monitoring: `--report`
 
 ```sh
 npx arol-ai scan --report <token>
 ```
 
-Create a token at [arol.ai/dashboard/tokens](https://arol.ai/dashboard/tokens) (sign-in
-creates your account; free during early access). With a monitoring token, each scan also
-uploads its results and dependency inventory to your Arol dashboard — so new deprecations that land *after* your scan can be matched
-against what your repo depends on, and you get alerted without re-scanning. In CI, set
-the token as a secret instead of a flag:
-
-```sh
-AROL_REPORT_TOKEN=<token> npx arol-ai scan
-```
-
-The workflow that `arol-ai init` generates already passes the secret through — adding
-`AROL_REPORT_TOKEN` in your repo's Actions secrets is the only step.
-`--report-name <name>` overrides the repo name shown in the dashboard (default: the
-scanned directory's name). Reporting is strictly opt-in and fail-soft — no token means
-nothing is ever sent, and an unreachable endpoint never affects the scan or its exit
-code. Exactly what gets uploaded is documented in
+Opt-in reporting for the Arol dashboard: each scan uploads results and your
+dependency inventory so new deprecations can alert you without a re-scan. Full
+setup, payload details, and findings vs notifications:
+[Continuous monitoring](https://github.com/benminor/arol/blob/main/docs/monitoring.md).
+Privacy of what gets sent:
 [Privacy & network](https://github.com/benminor/arol/blob/main/docs/privacy.md).
+
+In CI, set `AROL_REPORT_TOKEN` as a repo secret (the `arol-ai init` workflow
+already reads it). `--report-name <name>` overrides the dashboard repo name.
+No token means nothing is ever sent; an unreachable endpoint never affects the
+scan or its exit code.
 
 ### Bringing your own dataset: `--data`
 

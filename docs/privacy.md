@@ -25,7 +25,8 @@ only the repo you configured reports; scanning any other repo uploads nothing. T
 no global token and no machine-wide state. `rm .git/arol-token` turns a repo's reporting
 off, and the scan says when it used a saved token (`report sent … using this repo's saved
 token`). Resolution order: `--report` flag, then `AROL_REPORT_TOKEN`, then the repo's
-saved token.
+saved token. Setup and dashboard semantics:
+[Continuous monitoring](https://github.com/benminor/arol/blob/main/docs/monitoring.md).
 
 What a report contains: **exactly what `--json` prints**, plus a repo name and the CLI
 version. That means findings metadata (dataset entry ids, file paths, line numbers, the
