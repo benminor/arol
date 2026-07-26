@@ -682,7 +682,7 @@
   },
   {
     "id": "vercel-ai-sdk-v6-removed",
-    "vendor": "Vercel AI SDK",
+    "vendor": "Vercel (AI SDK)",
     "title": "AI SDK functions/classes removed in ai v6",
     "severity": "medium",
     "match": "pattern",
@@ -713,7 +713,7 @@
   },
   {
     "id": "vercel-ai-sdk-v6-generateobject-deprecated",
-    "vendor": "Vercel AI SDK",
+    "vendor": "Vercel (AI SDK)",
     "title": "generateObject / streamObject deprecated in ai v6",
     "severity": "low",
     "match": "pattern",
@@ -916,7 +916,7 @@
   {
     "id": "request-package-deprecated",
     "vendor": "Request",
-    "title": "request HTTP client (npm)",
+    "title": "request HTTP client family (npm)",
     "severity": "low",
     "match": "sdk",
     "applies_to": [
@@ -929,12 +929,14 @@
     "sunset_date": null,
     "detect": {
       "sdk": [
-        "request"
+        "request",
+        "request-promise",
+        "request-promise-native"
       ],
       "patterns": []
     },
     "migration_url": "https://github.com/request/request/issues/3142",
-    "summary": "The 'request' HTTP client was deprecated by its maintainers in Feb 2020 and receives no updates. Migrate to fetch (built into Node 18+), axios, or got.",
+    "summary": "The 'request' HTTP client and its request-promise wrappers were deprecated by their maintainers in Feb 2020 and receive no updates. Migrate to fetch (built into Node 18+), axios, or got.",
     "source": "https://github.com/request/request/issues/3142",
     "confidence": "confirmed"
   },
@@ -1242,6 +1244,317 @@
     "migration_url": "https://firebase.google.com/support/dynamic-links-faq",
     "summary": "Firebase Dynamic Links shut down Aug 25, 2025 — all links, including custom domains and page.link, stopped working. Remove the integration and migrate to App Links / Universal Links or a third-party provider.",
     "source": "https://firebase.google.com/support/dynamic-links-faq",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "google-signin-platform-library",
+    "vendor": "Google (Identity)",
+    "title": "Google Sign-In JS Platform Library (gapi.auth2)",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2023-03-31",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bgapi\\.auth2\\b",
+        "apis\\.google\\.com/js/platform\\.js"
+      ]
+    },
+    "migration_url": "https://developers.google.com/identity/gsi/web/guides/migration",
+    "summary": "The Google Sign-In JS Platform Library is deprecated; authorization support was discontinued Mar 31, 2023 and legacy client IDs are on borrowed time. Migrate to Google Identity Services.",
+    "source": "https://developers.google.com/identity/sign-in/web/deprecation-and-sunset",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "google-universal-analytics-retired",
+    "vendor": "Google (Analytics)",
+    "title": "Universal Analytics (analytics.js / UA- properties)",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2024-07-01",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "google-analytics\\.com/analytics\\.js",
+        "\\bga\\('create'",
+        "\\bUA-\\d{4,10}-\\d+\\b"
+      ]
+    },
+    "migration_url": "https://support.google.com/analytics/answer/11583528",
+    "summary": "Universal Analytics shut down July 1, 2024 — properties and APIs were switched off and remaining data deleted. Tags still shipping to it collect nothing; migrate to GA4.",
+    "source": "https://support.google.com/analytics/answer/11583528",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "google-maps-marker-deprecated",
+    "vendor": "Google (Maps)",
+    "title": "google.maps.Marker",
+    "severity": "low",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "google\\.maps\\.Marker\\b"
+      ]
+    },
+    "migration_url": "https://developers.google.com/maps/documentation/javascript/advanced-markers/migration",
+    "summary": "google.maps.Marker is deprecated (Feb 21, 2024): no new work, only major-regression fixes, and Google promises at least 12 months notice before discontinuing. Migrate to AdvancedMarkerElement.",
+    "source": "https://developers.google.com/maps/deprecations",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "meta-graph-api-legacy-versions",
+    "vendor": "Meta",
+    "title": "Graph API v19 and below",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "graph\\.facebook\\.com/v[2-9]\\.",
+        "graph\\.facebook\\.com/v1[0-9]\\."
+      ]
+    },
+    "migration_url": "https://developers.facebook.com/docs/graph-api/changelog",
+    "summary": "Graph API versions v19.0 and below are expired — requests to them return version errors under Meta's rolling ~2-year schedule. Pin a current version and plan for the next expiry.",
+    "source": "https://developers.facebook.com/docs/graph-api/changelog",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "azure-adal-retired",
+    "vendor": "Microsoft (Azure)",
+    "title": "Azure AD Authentication Library (ADAL)",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
+    "sunset_date": "2023-06-30",
+    "detect": {
+      "sdk": [
+        "adal-node",
+        "adal"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://learn.microsoft.com/en-us/entra/identity-platform/msal-migration",
+    "summary": "ADAL reached end of support June 30, 2023 — no security fixes since. Microsoft's replacement is MSAL (@azure/msal-node / msal for Python).",
+    "source": "https://learn.microsoft.com/en-us/entra/identity-platform/msal-migration",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "firebase-functions-config-shutdown",
+    "vendor": "Firebase",
+    "title": "functions.config() runtime configuration",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "mjs"
+    ],
+    "sunset_date": "2027-03-01",
+    "detect": {
+      "sdk": [
+        "firebase-functions"
+      ],
+      "patterns": [
+        "functions\\.config\\(\\)"
+      ]
+    },
+    "migration_url": "https://firebase.google.com/docs/functions/config-env",
+    "summary": "functions.config() is deprecated: the backing Runtime Config API shut down Dec 31, 2025, CLI config commands are gone, and Firebase states deployments using it stop working in March 2027. Migrate to environment variables or parameterized configuration.",
+    "source": "https://firebase.google.com/docs/functions/config-env",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "protractor-eol",
+    "vendor": "Protractor",
+    "title": "Protractor e2e test framework",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2023-08-31",
+    "detect": {
+      "sdk": [
+        "protractor"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://blog.angular.dev/protractor-deprecation-update-august-2023-2beac7402ce0",
+    "summary": "Protractor reached end of life Aug 31, 2023 — no further releases from the Angular team or community. Migrate to Cypress, Playwright, WebdriverIO, or Nightwatch.",
+    "source": "https://blog.angular.dev/protractor-deprecation-update-august-2023-2beac7402ce0",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "sentry-raven-legacy",
+    "vendor": "Sentry",
+    "title": "Legacy Raven SDKs",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "raven",
+        "raven-js"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://docs.sentry.io/platforms/python/migration/raven-to-sentry-sdk/",
+    "summary": "Sentry's Raven SDKs (raven, raven-js) are deprecated legacy clients in maintenance mode. Migrate to the unified SDKs: @sentry/browser, @sentry/node, or sentry-sdk for Python.",
+    "source": "https://blog.sentry.io/deprecating-our-legacy-javascript-sdk/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "paypal-rest-sdk-deprecated",
+    "vendor": "PayPal",
+    "title": "PayPal REST SDK (v1/payments)",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "py"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "paypal-rest-sdk",
+        "paypalrestsdk"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://developer.paypal.com/community/blog/navigating-paypal-server-sdks/",
+    "summary": "The PayPal REST SDKs are deprecated along with the v1/payments API — no new features or support, and PayPal is restricting the repos. Migrate to the current server SDKs and v2 Orders/Payments.",
+    "source": "https://www.npmjs.com/package/paypal-rest-sdk",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "go-jwt-go-deprecated",
+    "vendor": "jwt-go",
+    "title": "github.com/dgrijalva/jwt-go",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "go"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "github.com/dgrijalva/jwt-go"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://github.com/golang-jwt/jwt",
+    "summary": "dgrijalva/jwt-go is archived (May 2022) and receives no fixes, including for security issues. The community-maintained continuation is github.com/golang-jwt/jwt.",
+    "source": "https://github.com/dgrijalva/jwt-go",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "go-golang-protobuf-deprecated",
+    "vendor": "Go protobuf",
+    "title": "github.com/golang/protobuf",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "go"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "github.com/golang/protobuf"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://pkg.go.dev/google.golang.org/protobuf",
+    "summary": "The github.com/golang/protobuf module is officially deprecated. Use google.golang.org/protobuf, which supersedes it with a simplified API and protobuf reflection.",
+    "source": "https://pkg.go.dev/github.com/golang/protobuf",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "aws-boto2-archived",
+    "vendor": "AWS",
+    "title": "boto (v2) Python SDK",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "py"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "boto"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://github.com/boto/boto3",
+    "summary": "The original boto (v2) package is unmaintained and its repo was archived in May 2024 — issues and PRs are no longer reviewed. Migrate to boto3.",
+    "source": "https://github.com/boto/boto",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "huggingface-legacy-inference-api",
+    "vendor": "Hugging Face",
+    "title": "api-inference.huggingface.co endpoint",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "api-inference\\.huggingface\\.co"
+      ]
+    },
+    "migration_url": "https://huggingface.co/docs/inference-providers/index",
+    "summary": "The legacy api-inference.huggingface.co endpoint is no longer supported — the service itself answers requests with a migration error. Move to Inference Providers via router.huggingface.co.",
+    "source": "https://huggingface.co/docs/inference-providers/index",
     "confidence": "confirmed"
   }
 ]
