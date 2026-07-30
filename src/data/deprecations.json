@@ -1556,5 +1556,507 @@
     "summary": "The legacy api-inference.huggingface.co endpoint is no longer supported — the service itself answers requests with a migration error. Move to Inference Providers via router.huggingface.co.",
     "source": "https://huggingface.co/docs/inference-providers/index",
     "confidence": "confirmed"
+  },
+  {
+    "id": "shopify-scripts-sunset",
+    "vendor": "Shopify",
+    "title": "Shopify Scripts (Script Editor)",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "rb"
+    ],
+    "sunset_date": "2026-06-30",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bInput\\.cart\\b",
+        "\\bOutput\\.cart\\b",
+        "\\bInput\\.shipping_rates\\b",
+        "\\bInput\\.payment_gateways\\b"
+      ]
+    },
+    "migration_url": "https://shopify.dev/docs/apps/build/functions/migrating-from-shopify-scripts",
+    "summary": "Shopify Scripts stop executing on June 30, 2026 (editing freezes April 15, 2026). Rebuild line-item, shipping, and payment customizations with Shopify Functions.",
+    "source": "https://shopify.dev/changelog/shopify-scripts-will-be-deprecated-on-june-30-2026",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "shopify-script-tags",
+    "vendor": "Shopify",
+    "title": "ScriptTag API (order status / vintage themes)",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "cjs"
+    ],
+    "sunset_date": "2025-08-28",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "\\bscriptTagCreate\\b",
+        "\\bscriptTagUpdate\\b",
+        "\\bscriptTagDelete\\b",
+        "/script_tags\\b"
+      ]
+    },
+    "migration_url": "https://shopify.dev/docs/apps/build/online-store/theme-app-extensions",
+    "summary": "Script tags are restricted to vintage themes and were sunset for the Order status page on Aug 28, 2025. Prefer theme app extensions and Checkout Extensibility / web pixels.",
+    "source": "https://shopify.dev/docs/api/admin-graphql/latest/objects/ScriptTag",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "shopify-rest-admin-legacy",
+    "vendor": "Shopify",
+    "title": "REST Admin API (legacy)",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs",
+      "cjs",
+      "py",
+      "go"
+    ],
+    "sunset_date": "2024-10-01",
+    "detect": {
+      "sdk": [],
+      "patterns": [
+        "/admin/api/\\d{4}-\\d{2}/(?!graphql\\.json)[a-z0-9_./]+\\.json",
+        "@shopify/shopify-api/rest"
+      ]
+    },
+    "migration_url": "https://shopify.dev/docs/apps/build/graphql/migrate",
+    "summary": "The REST Admin API is legacy as of Oct 1, 2024; new App Store apps must use GraphQL (Apr 1, 2025). Migrate REST resource calls to the GraphQL Admin API.",
+    "source": "https://shopify.dev/docs/api/admin-rest",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "shopify-koa-auth-deprecated",
+    "vendor": "Shopify",
+    "title": "@shopify/koa-shopify-auth",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "@shopify/koa-shopify-auth",
+        "@shopify/network"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://github.com/Shopify/shopify-app-js/blob/main/packages/apps/shopify-app-express/README.md",
+    "summary": "@shopify/koa-shopify-auth and related Quilt packages are no longer supported. Build apps with @shopify/shopify-app-express, @shopify/shopify-app-remix, or the current Shopify app templates.",
+    "source": "https://github.com/Shopify/koa-shopify-auth",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "supabase-auth-helpers",
+    "vendor": "Supabase",
+    "title": "@supabase/auth-helpers-* packages",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "@supabase/auth-helpers-nextjs",
+        "@supabase/auth-helpers-react",
+        "@supabase/auth-helpers-remix",
+        "@supabase/auth-helpers-sveltekit",
+        "@supabase/auth-helpers-shared"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://supabase.com/docs/guides/auth/server-side/migrating-to-ssr-from-auth-helpers",
+    "summary": "Supabase Auth Helpers packages are no longer supported. Migrate to @supabase/ssr (createBrowserClient / createServerClient) for cookie-based SSR auth.",
+    "source": "https://supabase.com/docs/guides/auth/auth-helpers/nextjs",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "auth0-nextjs-v3-apis",
+    "vendor": "Auth0",
+    "title": "@auth0/nextjs-auth0 v3 APIs (handleAuth / with*AuthRequired)",
+    "severity": "medium",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "@auth0/nextjs-auth0"
+      ],
+      "patterns": [
+        "\\bhandleAuth\\s*\\(",
+        "\\bwithApiAuthRequired\\b",
+        "\\bwithPageAuthRequired\\b",
+        "\\bAUTH0_BASE_URL\\b",
+        "\\bAUTH0_ISSUER_BASE_URL\\b"
+      ]
+    },
+    "migration_url": "https://github.com/auth0/nextjs-auth0/blob/main/V4_MIGRATION_GUIDE.md",
+    "summary": "Auth0 Next.js SDK v4 replaces handleAuth/withApiAuthRequired/withPageAuthRequired and renames AUTH0_BASE_URL / AUTH0_ISSUER_BASE_URL. Migrate to the Auth0Client + middleware model.",
+    "source": "https://github.com/auth0/nextjs-auth0/blob/main/V4_MIGRATION_GUIDE.md",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "next-auth-legacy-adapters",
+    "vendor": "Auth.js",
+    "title": "@next-auth/*-adapter packages",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "@next-auth/prisma-adapter",
+        "@next-auth/drizzle-adapter",
+        "@next-auth/mongodb-adapter",
+        "@next-auth/supabase-adapter",
+        "@next-auth/firebase-adapter",
+        "@next-auth/typeorm-adapter",
+        "@next-auth/dgraph-adapter",
+        "@next-auth/fauna-adapter",
+        "@next-auth/dynamodb-adapter",
+        "@next-auth/neo4j-adapter",
+        "@next-auth/upstash-redis-adapter",
+        "@next-auth/sequelize-adapter",
+        "@next-auth/pouchdb-adapter",
+        "@next-auth/xata-adapter",
+        "@next-auth/hasura-adapter",
+        "@next-auth/unstorage-adapter"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://authjs.dev/getting-started/migrating-to-v5#adapters",
+    "summary": "Auth.js v5 moved database adapters from @next-auth/*-adapter to @auth/*-adapter. Replace the legacy scoped packages when upgrading next-auth to v5.",
+    "source": "https://authjs.dev/getting-started/migrating-to-v5",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "segment-analytics-node",
+    "vendor": "Segment",
+    "title": "analytics-node (classic Segment Node SDK)",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "analytics-node"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://segment.com/docs/connections/sources/catalog/libraries/server/node/migration/",
+    "summary": "The classic analytics-node package is superseded by @segment/analytics-node (different constructor and flush API). Upgrade to receive continued fixes and avoid the unmaintained axios dependency chain.",
+    "source": "https://segment.com/docs/connections/sources/catalog/libraries/server/node/migration/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "cloudflare-wrangler-v1",
+    "vendor": "Cloudflare",
+    "title": "@cloudflare/wrangler (Wrangler v1)",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2023-08-01",
+    "detect": {
+      "sdk": [
+        "@cloudflare/wrangler"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://developers.cloudflare.com/workers/wrangler/migration/update-v1-to-v2/",
+    "summary": "Wrangler v1 (@cloudflare/wrangler) stopped receiving updates in Aug 2023. Install the wrangler package (v2+) and follow the v1→v2 migration guide.",
+    "source": "https://blog.cloudflare.com/deprecating-wrangler-v1/",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "square-connect-sdk",
+    "vendor": "Square",
+    "title": "square-connect Node SDK",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2021-04-21",
+    "detect": {
+      "sdk": [
+        "square-connect"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://developer.squareup.com/docs/sdks/nodejs/migrating-to-square-nodejs-sdk",
+    "summary": "The square-connect SDK was retired Apr 21, 2021. Migrate to the square package (async APIs, camelCase models).",
+    "source": "https://github.com/square/connect-nodejs-sdk",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "babel-polyfill-deprecated",
+    "vendor": "Babel",
+    "title": "@babel/polyfill",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "@babel/polyfill",
+        "babel-polyfill"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://babeljs.io/docs/babel-polyfill",
+    "summary": "@babel/polyfill is deprecated. Prefer core-js and regenerator-runtime directly, or use @babel/preset-env useBuiltIns / Babel's bundler integrations.",
+    "source": "https://babeljs.io/docs/babel-polyfill",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "axios-cancel-token",
+    "vendor": "Axios",
+    "title": "axios CancelToken API",
+    "severity": "low",
+    "match": "pattern",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "axios"
+      ],
+      "patterns": [
+        "\\baxios\\.CancelToken\\b",
+        "\\bCancelToken\\.source\\s*\\("
+      ]
+    },
+    "migration_url": "https://axios-http.com/docs/cancellation",
+    "summary": "Axios CancelToken is deprecated in favor of the standard AbortController / AbortSignal API (signal option on requests).",
+    "source": "https://axios-http.com/docs/cancellation",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "react-query-package-rename",
+    "vendor": "TanStack",
+    "title": "react-query package (pre-TanStack rename)",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "react-query"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://tanstack.com/query/latest/docs/framework/react/guides/migrating-to-v4",
+    "summary": "React Query moved to the @tanstack/react-query package. The legacy react-query name stopped at v3 and no longer receives features — migrate to the TanStack scoped package.",
+    "source": "https://tanstack.com/query/latest/docs/framework/react/guides/migrating-to-v4",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "apollo-legacy-packages",
+    "vendor": "Apollo",
+    "title": "apollo-client / apollo-boost / react-apollo",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "apollo-client",
+        "apollo-boost",
+        "react-apollo",
+        "apollo-cache-inmemory",
+        "apollo-link-http"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://www.apollographql.com/docs/react/migrating/apollo-client-3-migration",
+    "summary": "The split apollo-client / react-apollo / apollo-boost packages are superseded by the unified @apollo/client package. Migrate imports and remove the legacy packages.",
+    "source": "https://www.apollographql.com/docs/react/migrating/apollo-client-3-migration",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "aws-cdk-v1-eol",
+    "vendor": "AWS",
+    "title": "AWS CDK v1 (@aws-cdk/*)",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": "2023-06-01",
+    "detect": {
+      "sdk": [
+        "@aws-cdk/core",
+        "@aws-cdk/aws-lambda",
+        "@aws-cdk/aws-s3",
+        "@aws-cdk/aws-dynamodb",
+        "@aws-cdk/aws-ecs",
+        "@aws-cdk/aws-apigateway",
+        "@aws-cdk/aws-iam"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://docs.aws.amazon.com/cdk/v2/guide/migrating-v2.html",
+    "summary": "AWS CDK v1 reached end-of-support on June 1, 2023. Migrate from @aws-cdk/* construct packages to the aws-cdk-lib monolithic CDK v2 library.",
+    "source": "https://docs.aws.amazon.com/cdk/v2/guide/migrating-v2.html",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "launchdarkly-legacy-node-sdks",
+    "vendor": "LaunchDarkly",
+    "title": "ldclient-node / launchdarkly-node-server-sdk",
+    "severity": "medium",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "ldclient-node",
+        "launchdarkly-node-server-sdk"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://docs.launchdarkly.com/sdk/server-side/node-js",
+    "summary": "ldclient-node and launchdarkly-node-server-sdk are deprecated package names. Use @launchdarkly/node-server-sdk for the supported Node server-side SDK.",
+    "source": "https://www.npmjs.com/package/launchdarkly-node-server-sdk",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "discord-js-pre-v14",
+    "vendor": "Discord.js",
+    "title": "discord.js v13 and earlier",
+    "severity": "low",
+    "match": "version",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "discord.js"
+      ],
+      "patterns": []
+    },
+    "version_range": "<14.0.0",
+    "migration_url": "https://discordjs.guide/additional-info/changes-in-v14.html",
+    "summary": "discord.js v14 is the supported major line (Node 18+). v13 and earlier lack current Discord API coverage — follow the v14 update guide.",
+    "source": "https://discordjs.guide/additional-info/changes-in-v14.html",
+    "confidence": "confirmed"
+  },
+  {
+    "id": "enzyme-abandoned",
+    "vendor": "Enzyme",
+    "title": "enzyme React test utilities",
+    "severity": "low",
+    "match": "sdk",
+    "applies_to": [
+      "js",
+      "ts",
+      "jsx",
+      "tsx",
+      "mjs"
+    ],
+    "sunset_date": null,
+    "detect": {
+      "sdk": [
+        "enzyme",
+        "enzyme-adapter-react-16",
+        "enzyme-adapter-react-17",
+        "@wojtekmaj/enzyme-adapter-react-17"
+      ],
+      "patterns": []
+    },
+    "migration_url": "https://testing-library.com/docs/react-testing-library/migrate-from-enzyme/",
+    "summary": "Enzyme is unmaintained for modern React (no official React 18+ adapter). Migrate tests to React Testing Library (@testing-library/react).",
+    "source": "https://github.com/enzymejs/enzyme",
+    "confidence": "reported"
   }
 ]

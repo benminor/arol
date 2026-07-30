@@ -222,6 +222,44 @@ describe("Firebase functions.config()", () => {
   });
 });
 
+/* ----------------------- ecosystem-gated manifests ----------------------- */
+
+describe("manifest matching respects the entry's ecosystem", () => {
+  it("PyPI's unrelated 'moment' package does not trigger the Moment.js entry", () => {
+    const py = scanTmp({ "requirements.txt": "moment==0.12.1\n" });
+    expect(fired(py, "momentjs-maintenance-mode")).toBe(false);
+  });
+
+  it("npm-scoped entries ignore same-named Python deps across the batch", () => {
+    const py = scanTmp({
+      "requirements.txt": "karma==0.1\nangular==0.1\nrequest==2019.4.13\n",
+    });
+    expect(fired(py, "karma-deprecated")).toBe(false);
+    expect(fired(py, "angularjs-eol")).toBe(false);
+    expect(fired(py, "request-package-deprecated")).toBe(false);
+  });
+
+  it("python-scoped entries ignore same-named npm deps", () => {
+    const js = scanTmp({ "package.json": pkg({ boto: "^1.0.0" }) });
+    expect(fired(js, "aws-boto2-archived")).toBe(false);
+  });
+
+  it("entries spanning both ecosystems still match both — by design", () => {
+    const js = scanTmp({ "package.json": pkg({ raven: "^2.6.4" }) });
+    const py = scanTmp({ "requirements.txt": "raven==6.10.0\n" });
+    expect(fired(js, "sentry-raven-legacy")).toBe(true);
+    expect(fired(py, "sentry-raven-legacy")).toBe(true);
+  });
+
+  it("gating works for workspace manifests in subdirectories", () => {
+    const ws = scanTmp({
+      "package.json": JSON.stringify({ workspaces: ["packages/*"] }),
+      "packages/web/package.json": pkg({ moment: "^2.30.1" }),
+    });
+    expect(fired(ws, "momentjs-maintenance-mode")).toBe(true);
+  });
+});
+
 describe("Hugging Face legacy inference endpoint", () => {
   it("fires on the dead hostname, not on the router", () => {
     const bad = scanTmp({

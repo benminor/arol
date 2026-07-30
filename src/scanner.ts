@@ -28,6 +28,7 @@ export const SOURCE_EXTENSIONS = [
   "tsx",
   "py",
   "go",
+  "rb",
 ];
 
 /**
@@ -373,6 +374,30 @@ function scanContent(
   }
 }
 
+/**
+ * Ecosystem of a manifest file, expressed as the file extensions an entry's
+ * applies_to would name. Package registries are namespaces: PyPI happens to
+ * have an unrelated package called "moment", npm has squatters on Python
+ * names. An entry scoped to ["js","ts",...] must therefore only match
+ * package.json dependencies — never a same-named PyPI or Go module.
+ */
+const MANIFEST_ECOSYSTEM: Record<string, string[]> = {
+  "package.json": ["js", "ts", "jsx", "tsx", "mjs", "cjs"],
+  "requirements.txt": ["py"],
+  "go.mod": ["go"],
+};
+
+function manifestCompatible(deprecation: Deprecation, manifestPath: string): boolean {
+  const applies = deprecation.applies_to ?? ["*"];
+  if (applies.includes("*")) return true;
+  const base = manifestPath.split(/[\\/]/).pop() ?? manifestPath;
+  const ecosystem = MANIFEST_ECOSYSTEM[base];
+  // Unknown manifest kinds stay permissive — new parsers shouldn't silently
+  // stop matching existing entries.
+  if (!ecosystem) return true;
+  return ecosystem.some((ext) => applies.includes(ext));
+}
+
 /** Find dependencies in the collected manifest refs that match each deprecation. */
 function matchManifests(
   deprecations: Deprecation[],
@@ -386,6 +411,7 @@ function matchManifests(
     const seen = new Set<string>();
     for (const sdk of sdks) {
       for (const ref of refs) {
+        if (!manifestCompatible(deprecation, ref.source)) continue;
         if (!nameMatches(sdk, ref.name)) continue;
         const key = `${ref.source}::${ref.name}`;
         if (seen.has(key)) continue;
