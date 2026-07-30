@@ -24,6 +24,7 @@ describe("integration: fixture repos", () => {
       "anthropic-mythos-preview-deprecated",
       "anthropic-opus-4-7-fast-mode-removed",
       "docusign-legacy-phone-auth",
+      "google-gemini-2-5-flash-image-shutdown",
       "hubspot-lead-status-property-readonly",
       "openai-2027-01-20-shutdown",
       "openai-assistants-api",
@@ -38,6 +39,14 @@ describe("integration: fixture repos", () => {
     const retired = byId["openai-legacy-retired-models"].patternMatches;
     expect(retired).toEqual([
       { file: "src/agents.ts", line: 9, text: '"text-davinci-003"' },
+    ]);
+
+    // Gemini 2.5 Flash Image ("Nano Banana"): flags the retiring model id —
+    // but never the gemini-3.1-flash-image replacement (see fixtures/clean).
+    const geminiFlashImage =
+      byId["google-gemini-2-5-flash-image-shutdown"].patternMatches;
+    expect(geminiFlashImage).toEqual([
+      { file: "src/gemini.ts", line: 6, text: '"gemini-2.5-flash-image"' },
     ]);
 
     // Legacy DocuSign recipient auth: flags the deprecated phoneAuthentication

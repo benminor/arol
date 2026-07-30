@@ -115,6 +115,32 @@
     "confidence": "confirmed"
   },
   {
+    "id": "google-gemini-2-5-flash-image-shutdown",
+    "vendor": "Google (Gemini)",
+    "title": "Gemini 2.5 Flash Image (\"Nano Banana\")",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2026-10-02",
+    "detect": {
+      "sdk": [
+        "@google/generative-ai",
+        "@google/genai",
+        "google-generativeai"
+      ],
+      "patterns": [],
+      "models": [
+        "gemini-2.5-flash-image"
+      ]
+    },
+    "migration_url": "https://ai.google.dev/gemini-api/docs/deprecations",
+    "summary": "Gemini 2.5 Flash Image (\"Nano Banana\") is scheduled for shutdown Oct 2, 2026. Migrate to gemini-3.1-flash-image or another current Gemini 3.x image model.",
+    "source": "https://firebase.google.com/docs/ai-logic/models",
+    "confidence": "confirmed"
+  },
+  {
     "id": "google-gemini-2-0-shutdown",
     "vendor": "Google (Gemini)",
     "title": "Gemini 2.0 Flash family",
