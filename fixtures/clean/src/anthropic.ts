@@ -23,3 +23,10 @@ export const mythos5 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Claude Opus 4.8 — the migration target for retired Opus 4.1.
+export const opus48 = anthropic.messages.create({
+  model: "claude-opus-4-8",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});

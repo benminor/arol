@@ -87,6 +87,32 @@
     "confidence": "confirmed"
   },
   {
+    "id": "anthropic-opus-4-1-retired",
+    "vendor": "Anthropic",
+    "title": "Claude Opus 4.1 (claude-opus-4-1-20250805)",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2026-08-05",
+    "announced_date": "2026-06-05",
+    "detect": {
+      "sdk": [
+        "@anthropic-ai/sdk",
+        "anthropic"
+      ],
+      "patterns": [],
+      "models": [
+        "claude-opus-4-1-20250805"
+      ]
+    },
+    "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "summary": "Claude Opus 4.1 (claude-opus-4-1-20250805) was retired on the Claude API on August 5, 2026 and is no longer available. Migrate to claude-opus-4-8.",
+    "source": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "confidence": "confirmed"
+  },
+  {
     "id": "google-gemini-2-5-retirement",
     "vendor": "Google (Gemini)",
     "title": "Gemini 2.5 Pro / Flash / Flash-Lite",

@@ -22,6 +22,7 @@ describe("integration: fixture repos", () => {
     expect(Object.keys(byId).sort()).toEqual([
       "anthropic-experimental-prompt-tools-retired",
       "anthropic-mythos-preview-deprecated",
+      "anthropic-opus-4-1-retired",
       "anthropic-opus-4-7-fast-mode-removed",
       "docusign-legacy-phone-auth",
       "google-gemini-2-5-flash-image-shutdown",
@@ -100,6 +101,13 @@ describe("integration: fixture repos", () => {
         line: 7,
         text: 'model: "claude-opus-4-7", speed: "fast"',
       },
+    ]);
+
+    // Claude Opus 4.1 retired Aug 5, 2026: flags the retired model id pinned
+    // in a real call — but never the claude-opus-4-8 replacement (fixtures/clean).
+    const opus41 = byId["anthropic-opus-4-1-retired"].patternMatches;
+    expect(opus41).toEqual([
+      { file: "src/anthropic.ts", line: 22, text: '"claude-opus-4-1-20250805"' },
     ]);
   });
 });

@@ -16,3 +16,10 @@ export const mythosPreview = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Claude Opus 4.1 was retired Aug 5, 2026 — this now errors.
+export const retiredOpus41 = anthropic.messages.create({
+  model: "claude-opus-4-1-20250805",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});
