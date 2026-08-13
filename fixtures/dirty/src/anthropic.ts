@@ -23,3 +23,10 @@ export const retiredOpus41 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Claude Haiku 3.5 was retired on the Claude API Feb 19, 2026 — this now errors.
+export const retiredHaiku35 = anthropic.messages.create({
+  model: "claude-3-5-haiku-20241022",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});

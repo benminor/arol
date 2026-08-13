@@ -30,3 +30,10 @@ export const opus48 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Claude Haiku 4.5 — the migration target for retired Haiku 3.5.
+export const haiku45 = anthropic.messages.create({
+  model: "claude-haiku-4-5-20251001",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});

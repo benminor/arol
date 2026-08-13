@@ -113,6 +113,32 @@
     "confidence": "confirmed"
   },
   {
+    "id": "anthropic-haiku-3-5-retired-claude-api",
+    "vendor": "Anthropic",
+    "title": "Claude Haiku 3.5 (claude-3-5-haiku-20241022) retired on the Claude API",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2026-02-19",
+    "announced_date": "2025-12-19",
+    "detect": {
+      "sdk": [
+        "@anthropic-ai/sdk",
+        "anthropic"
+      ],
+      "patterns": [],
+      "models": [
+        "claude-3-5-haiku-20241022"
+      ]
+    },
+    "migration_url": "https://platform.claude.com/docs/en/about-claude/model-deprecations",
+    "summary": "Claude Haiku 3.5 (claude-3-5-haiku-20241022) was retired on the Claude API on February 19, 2026; requests through the Claude API return an error. The model remains available on Amazon Bedrock and Google Cloud. Migrate to claude-haiku-4-5-20251001.",
+    "source": "https://platform.claude.com/docs/en/release-notes/overview",
+    "confidence": "confirmed"
+  },
+  {
     "id": "google-gemini-2-5-retirement",
     "vendor": "Google (Gemini)",
     "title": "Gemini 2.5 Pro / Flash / Flash-Lite",
