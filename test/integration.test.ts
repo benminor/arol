@@ -21,6 +21,7 @@ describe("integration: fixture repos", () => {
     );
     expect(Object.keys(byId).sort()).toEqual([
       "anthropic-experimental-prompt-tools-retired",
+      "anthropic-haiku-3-5-retired-claude-api",
       "anthropic-mythos-preview-deprecated",
       "anthropic-opus-4-1-retired",
       "anthropic-opus-4-7-fast-mode-removed",
@@ -116,6 +117,14 @@ describe("integration: fixture repos", () => {
     const opus41 = byId["anthropic-opus-4-1-retired"].patternMatches;
     expect(opus41).toEqual([
       { file: "src/anthropic.ts", line: 22, text: '"claude-opus-4-1-20250805"' },
+    ]);
+
+    // Claude Haiku 3.5 retired on the Claude API Feb 19, 2026: flags the
+    // retired model id pinned in a real call — but never the
+    // claude-haiku-4-5-20251001 replacement (fixtures/clean).
+    const haiku35 = byId["anthropic-haiku-3-5-retired-claude-api"].patternMatches;
+    expect(haiku35).toEqual([
+      { file: "src/anthropic.ts", line: 29, text: '"claude-3-5-haiku-20241022"' },
     ]);
   });
 });
