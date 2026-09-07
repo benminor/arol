@@ -907,6 +907,34 @@
     "confidence": "confirmed"
   },
   {
+    "id": "openai-2027-02-26-shutdown",
+    "vendor": "OpenAI",
+    "title": "OpenAI transcription models shut down February 26, 2027 (whisper-1, gpt-4o-transcribe family)",
+    "severity": "high",
+    "match": "pattern",
+    "applies_to": [
+      "*"
+    ],
+    "sunset_date": "2027-02-26",
+    "announced_date": "2026-08-26",
+    "detect": {
+      "sdk": [
+        "openai"
+      ],
+      "patterns": [],
+      "models": [
+        "whisper-1",
+        "gpt-4o-transcribe",
+        "gpt-4o-mini-transcribe",
+        "gpt-4o-transcribe-diarize"
+      ]
+    },
+    "migration_url": "https://platform.openai.com/docs/deprecations",
+    "summary": "OpenAI's whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe, and gpt-4o-transcribe-diarize transcription models are scheduled for removal from the API on February 26, 2027. Migrate to gpt-live-transcribe or gpt-transcribe.",
+    "source": "https://platform.openai.com/docs/deprecations",
+    "confidence": "confirmed"
+  },
+  {
     "id": "anthropic-mythos-preview-deprecated",
     "vendor": "Anthropic",
     "title": "Claude Mythos Preview",

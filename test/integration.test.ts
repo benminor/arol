@@ -28,6 +28,7 @@ describe("integration: fixture repos", () => {
       "google-gemini-2-5-flash-image-shutdown",
       "hubspot-lead-status-property-readonly",
       "openai-2027-01-20-shutdown",
+      "openai-2027-02-26-shutdown",
       "openai-assistants-api",
       "openai-legacy-retired-models",
     ]);
@@ -80,6 +81,13 @@ describe("integration: fixture repos", () => {
     const realtime = byId["openai-2027-01-20-shutdown"].patternMatches;
     expect(realtime).toEqual([
       { file: "src/realtime.ts", line: 6, text: '"gpt-realtime"' },
+    ]);
+
+    // Legacy transcription model retiring Feb 26, 2027 — flags the bare quoted
+    // model id, but never the gpt-transcribe replacement (see fixtures/clean).
+    const transcription = byId["openai-2027-02-26-shutdown"].patternMatches;
+    expect(transcription).toEqual([
+      { file: "src/transcription.ts", line: 6, text: '"whisper-1"' },
     ]);
 
     // Claude Mythos Preview: flags the deprecated model id pinned in a real
