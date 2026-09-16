@@ -26,6 +26,7 @@ describe("integration: fixture repos", () => {
       "anthropic-opus-4-7-fast-mode-removed",
       "docusign-legacy-phone-auth",
       "google-gemini-2-5-flash-image-shutdown",
+      "google-gemini-3-1-flash-live-preview-legacy",
       "hubspot-lead-status-property-readonly",
       "openai-2027-01-20-shutdown",
       "openai-2027-02-26-shutdown",
@@ -49,6 +50,15 @@ describe("integration: fixture repos", () => {
       byId["google-gemini-2-5-flash-image-shutdown"].patternMatches;
     expect(geminiFlashImage).toEqual([
       { file: "src/gemini.ts", line: 6, text: '"gemini-2.5-flash-image"' },
+    ]);
+
+    // gemini-3.1-flash-live-preview: flags the model id now that the vendor
+    // page points it at gemini-3.8-live — but never the replacement itself
+    // (see fixtures/clean).
+    const geminiFlashLive =
+      byId["google-gemini-3-1-flash-live-preview-legacy"].patternMatches;
+    expect(geminiFlashLive).toEqual([
+      { file: "src/gemini-live.ts", line: 6, text: '"gemini-3.1-flash-live-preview"' },
     ]);
 
     // Legacy DocuSign recipient auth: flags the deprecated phoneAuthentication
