@@ -24,12 +24,17 @@ describe("integration: fixture repos", () => {
       "anthropic-mythos-preview-deprecated",
       "anthropic-opus-4-1-retired",
       "anthropic-opus-4-7-fast-mode-removed",
+      "anthropic-sonnet-4-5-retired",
       "docusign-legacy-phone-auth",
       "google-gemini-2-5-flash-image-shutdown",
       "hubspot-lead-status-property-readonly",
+      "hubspot-pipelines-api-v1-sunset",
+      "openai-2027-01-06-tts-shutdown",
       "openai-2027-01-20-shutdown",
       "openai-2027-02-26-shutdown",
+      "openai-2027-04-01-shutdown",
       "openai-assistants-api",
+      "openai-gpt-5-4-cyber-retired",
       "openai-legacy-retired-models",
     ]);
 
@@ -116,6 +121,38 @@ describe("integration: fixture repos", () => {
     const opus41 = byId["anthropic-opus-4-1-retired"].patternMatches;
     expect(opus41).toEqual([
       { file: "src/anthropic.ts", line: 22, text: '"claude-opus-4-1-20250805"' },
+    ]);
+
+    // Claude Sonnet 4.5 retires Nov 30, 2026 — flags the dated id (and bare
+    // alias when present) — but never claude-sonnet-5-5 (fixtures/clean).
+    const sonnet45 = byId["anthropic-sonnet-4-5-retired"].patternMatches;
+    expect(sonnet45).toEqual([
+      { file: "src/anthropic.ts", line: 29, text: '"claude-sonnet-4-5-20250929"' },
+    ]);
+
+    // OpenAI Apr 1, 2027 model shutdown — flags gpt-5.3-codex in dirty fixtures.
+    const apr2027 = byId["openai-2027-04-01-shutdown"].patternMatches;
+    expect(apr2027).toEqual([
+      { file: "src/openai-models.ts", line: 6, text: '"gpt-5.3-codex"' },
+    ]);
+
+    // OpenAI TTS models retiring Jan 6, 2027.
+    const tts = byId["openai-2027-01-06-tts-shutdown"].patternMatches;
+    expect(tts).toEqual([
+      { file: "src/openai-models.ts", line: 10, text: '"tts-1"' },
+    ]);
+
+    // gpt-5.4-cyber removed Oct 1, 2026.
+    const cyber = byId["openai-gpt-5-4-cyber-retired"].patternMatches;
+    expect(cyber).toEqual([
+      { file: "src/openai-models.ts", line: 16, text: '"gpt-5.4-cyber"' },
+    ]);
+
+    // HubSpot Pipelines API V1 sunsets Dec 4, 2026 — flags /crm/v1/pipelines,
+    // but never /crm/v3/pipelines (fixtures/clean).
+    const pipelines = byId["hubspot-pipelines-api-v1-sunset"].patternMatches;
+    expect(pipelines).toEqual([
+      { file: "src/hubspot-pipelines.ts", line: 2, text: "/crm/v1/pipelines" },
     ]);
   });
 });

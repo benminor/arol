@@ -6,7 +6,7 @@ const client = new Anthropic();
 // experimental prompt tools endpoints are retired and had no successor.
 export async function draftPrompt(task: string) {
   return client.messages.create({
-    model: "claude-sonnet-4-5",
+    model: "claude-sonnet-5-5",
     messages: [{ role: "user", content: `Write a prompt for: ${task}` }],
   });
-}
+
