@@ -23,3 +23,10 @@ export const retiredOpus41 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Claude Sonnet 4.5 retires Nov 30, 2026.
+export const sonnet45 = anthropic.messages.create({
+  model: "claude-sonnet-4-5-20250929",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});

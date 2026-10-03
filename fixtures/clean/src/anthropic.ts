@@ -30,3 +30,10 @@ export const opus48 = anthropic.messages.create({
   max_tokens: 1024,
   messages: [{ role: "user", content: "hi" }],
 });
+
+// Claude Sonnet 5.5 — migration target for Sonnet 4.5.
+export const sonnet55 = anthropic.messages.create({
+  model: "claude-sonnet-5-5",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "hi" }],
+});
